@@ -18,7 +18,10 @@ export async function POST(req) {
   const openai = new OpenAI()
   const data = await req.text()
 
-  // We'll implement the OpenAI API call here
+  const apiKey = process.env.NEXT_PUBLIC_OPENAI_API_KEY;
+
+
+
 }
 
 export async function POST(req) {
@@ -30,7 +33,7 @@ export async function POST(req) {
       { role: 'system', content: systemPrompt },
       { role: 'user', content: data },
     ],
-    model: 'gpt-4o',
+    model: 'gpt-4o-mini',
     response_format: { type: 'json_object' },
   })
 
@@ -46,7 +49,7 @@ export async function POST(req) {
       { role: 'system', content: systemPrompt },
       { role: 'user', content: data },
     ],
-    model: 'gpt-4o',
+    model: 'gpt-4o-mini',
     response_format: { type: 'json_object' },
   })
 
