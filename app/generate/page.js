@@ -17,7 +17,7 @@ import {
   DialogActions
 } from '@mui/material'
 import { doc, collection, getDoc, writeBatch } from 'firebase/firestore'
-import { db } from '/firebase' // Make sure to import your Firebase configuration
+import db from '/firebase'; // No curly braces needed for default exports
 
 export default function Generate() {
   const [text, setText] = useState('')
