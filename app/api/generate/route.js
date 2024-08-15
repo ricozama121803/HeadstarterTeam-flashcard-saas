@@ -1,15 +1,34 @@
 import { NextResponse } from "next/server";
 import OpenAI from "openai";
 
-const systemPrompt = `
-You are a flashcard creator, you take in text and create multiple flashcards from it. Make sure to create exactly 10 flashcards.
-Both front and back should be one sentence long.
-You should return in the following JSON format:
+const flashcardsPrompt = `
+You are a flashcard creator. Take the following text and generate exactly 10 flashcards. Each flashcard should have a front and back, both being a single sentence.
+
+Return the result in the following JSON format:
 {
-  "flashcards":[
+  "flashcards": [
     {
       "front": "Front of the card",
       "back": "Back of the card"
+    }
+  ]
+}`;
+
+const quizzesPrompt = `
+You are a quiz creator. Take the following text and generate 5 quiz questions. Each question should have 4 multiple-choice options, one correct answer, and three distractors.
+
+Return the result in the following JSON format:
+{
+  "quizzes": [
+    {
+      "question": "Question text",
+      "options": [
+        "Option A",
+        "Option B",
+        "Option C",
+        "Option D"
+      ],
+      "answer": "Correct option"
     }
   ]
 }`;
@@ -19,19 +38,25 @@ export async function POST(req) {
     apiKey: process.env.NEXT_PUBLIC_OPENAI_API_KEY,
   });
 
-  const data = await req.text();
+  const { text, type } = await req.json();
+  const systemPrompt = type === "Flashcards" ? flashcardsPrompt : quizzesPrompt;
 
   try {
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
         { role: "system", content: systemPrompt },
-        { role: "user", content: data },
+        { role: "user", content: text },
       ],
     });
+    if (type === "Quizzes") {
+      const quizzes = JSON.parse(completion.choices[0].message.content);
 
-    const flashcards = JSON.parse(completion.choices[0].message.content);
-    return NextResponse.json(flashcards.flashcards);
+      return NextResponse.json(quizzes.quizzes);
+    } else {
+      const flashcards = JSON.parse(completion.choices[0].message.content);
+      return NextResponse.json(flashcards.flashcards);
+    }
   } catch (error) {
     console.error("Error generating flashcards:", error);
     return NextResponse.json(

@@ -19,14 +19,18 @@ import {
   AutoStories as StoryIcon,
 } from "@mui/icons-material";
 import WaitlistForm from "./UI-components/waitlist";
+import Quiz from "./UI-components/Quizzes";
 export default function Home() {
   const router = useRouter();
 
   const handleSubmit = async (amount) => {
     const checkoutSession = await fetch("/api/checkout_sessions", {
       method: "POST",
-      headers: { origin: "http://localhost:3000", "Content-Type": "application/json" },
-      body: JSON.stringify({ amount: amount })
+      headers: {
+        origin: "http://localhost:3000",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ amount: amount }),
     });
     const checkoutSessionJson = await checkoutSession.json();
 
@@ -61,7 +65,6 @@ export default function Home() {
         </Toolbar>
       </AppBar>
 
-      {/* Front Section */}
       <Container maxWidth="lg" sx={{ py: 8 }}>
         <Box sx={{ textAlign: "center", my: 8 }}>
           <Typography
@@ -307,7 +310,9 @@ export default function Home() {
                   variant="contained"
                   color="primary"
                   sx={{ mt: 2, px: 4, py: 2 }}
-                  onClick={()=>{handleSubmit(9.99)}}
+                  onClick={() => {
+                    handleSubmit(9.99);
+                  }}
                 >
                   Checkout
                 </Button>
@@ -353,7 +358,9 @@ export default function Home() {
                   variant="contained"
                   color="primary"
                   sx={{ mt: 2, px: 4, py: 2 }}
-                  onClick={()=>{handleSubmit(19.99)}}
+                  onClick={() => {
+                    handleSubmit(19.99);
+                  }}
                 >
                   Checkout
                 </Button>

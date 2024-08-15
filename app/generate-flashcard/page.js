@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 import {
   Container,
   TextField,
@@ -18,11 +18,17 @@ import {
   CircularProgress,
   AppBar,
   Toolbar,
+  InputLabel,
 } from "@mui/material";
 import FlashcardsGrid from "../flashcard/flashcardGrid";
 import db from "/firebase";
 import { useAuth } from "@clerk/clerk-react";
 import { useRouter } from "next/navigation";
+import MyForm from "../UI-components/type";
+import MenuItem from "@mui/material/MenuItem";
+import FormControl from "@mui/material/FormControl";
+import Select, { SelectChangeEvent } from "@mui/material/Select";
+import Quiz from "../UI-components/Quizzes";
 import {
   collection,
   doc,
@@ -41,12 +47,25 @@ export default function Generate() {
   const [loading, setLoading] = useState(true);
   const [text, setText] = useState("");
   const [flashcards, setFlashcards] = useState([]);
+  const [quizzes, setQuizzes] = useState([]);
   const [setName, setSetName] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [type, setType] = useState("Flashcards");
 
   const router = useRouter();
   const styles = {
     card: { background: "blue", color: "white", borderRadius: 20 },
+  };
+
+  useEffect(() => {
+    if (type === "Quizzes") {
+      setFlashcards([]);
+    } else {
+      setQuizzes([]);
+    }
+  }, [type]);
+  const handleSelectionChange = (value) => {
+    setType(value);
   };
 
   useEffect(() => {
@@ -75,7 +94,7 @@ export default function Generate() {
     try {
       const response = await fetch("/api/generate", {
         method: "POST",
-        body: text,
+        body: JSON.stringify({ text, type }),
       });
 
       if (!response.ok) {
@@ -83,9 +102,12 @@ export default function Generate() {
       }
 
       const data = await response.json();
-      setFlashcards(data);
+      if (type === "Quizzes") {
+        setQuizzes(data);
+      } else {
+        setFlashcards(data);
+      }
     } catch (error) {
-      console.error("Error generating flashcards:", error);
       alert("An error occurred while generating flashcards. Please try again.");
     }
   };
@@ -93,56 +115,66 @@ export default function Generate() {
   const handleOpenDialog = () => setDialogOpen(true);
   const handleCloseDialog = () => setDialogOpen(false);
 
-  const saveFlashcards = async () => {
+  const saveContent = async () => {
     if (!setName.trim()) {
-      alert("Please enter a name for your flashcard set.");
+      alert("Please enter a name for your content set.");
       return;
     }
 
     try {
       const batch = writeBatch(db);
-
+      const sanitizedSetName = setName.replace(/[^\w\s]/gi, "");
       const userDocRef = doc(db, "users", userId);
 
       const userDocSnap = await getDoc(userDocRef);
-      const sanitizedSetName = setName.replace(/[^\w\s]/gi, "");
 
       if (userDocSnap.exists()) {
-        const flashcardSets = userDocSnap.data().flashcardSets || [];
+        const contentSets = userDocSnap.data().contentSets || [];
 
-        if (flashcardSets.some((set) => set.name === sanitizedSetName)) {
-          alert("A flashcard set with the same name already exists.");
+        if (contentSets.some((set) => set.name === sanitizedSetName)) {
+          alert("A content set with the same name already exists.");
           return;
         } else {
-          flashcardSets.push({ name: sanitizedSetName });
-          batch.update(userDocRef, { flashcardSets });
+          contentSets.push({ name: sanitizedSetName });
+          batch.update(userDocRef, { contentSets });
         }
       } else {
-        batch.set(userDocRef, { flashcardSets: [{ name: sanitizedSetName }] });
+        batch.set(userDocRef, { contentSets: [{ name: sanitizedSetName }] });
       }
 
-      const flashcardSetsCollectionRef = collection(
-        db,
-        `users/${userId}/flashcardSets`
-      );
-      const setDocRef = doc(flashcardSetsCollectionRef, sanitizedSetName);
-
-      flashcards.forEach((flashcard, index) => {
-        const docRef = doc(
-          collection(setDocRef, "flashcards"),
-          `flashcard_${index}`
+      // Check the type and handle accordingly
+      if (type === "Flashcards") {
+        const flashcardsCollectionRef = collection(
+          db,
+          `users/${userId}/flashcardSets`
         );
-        batch.set(docRef, flashcard);
-      });
+        const setDocRef = doc(flashcardsCollectionRef, sanitizedSetName);
+
+        flashcards.forEach((flashcard, index) => {
+          const docRef = doc(
+            collection(setDocRef, "flashcards"),
+            `flashcard_${index}`
+          );
+
+          batch.set(docRef, flashcard);
+        });
+      } else if (type === "Quizzes") {
+        const quizzesCollectionRef = collection(db, `users/${userId}/quizSets`);
+        const setDocRef = doc(quizzesCollectionRef, sanitizedSetName);
+
+        quizzes.forEach((quiz, index) => {
+          const docRef = doc(collection(setDocRef, "quizzes"), `quiz_${index}`);
+
+          batch.set(docRef, quiz);
+        });
+      }
 
       await batch.commit();
-
-      alert("Flashcards saved successfully!");
+      alert("Content saved successfully!");
       handleCloseDialog();
       setSetName("");
     } catch (error) {
-      console.error("Error saving flashcards:", error);
-      alert("An error occurred while saving flashcards. Please try again.");
+      alert("An error occurred while saving content. Please try again.");
     }
   };
 
@@ -171,7 +203,19 @@ export default function Generate() {
           </Button>
         </Toolbar>
       </AppBar>
-      <Container maxWidth="md">
+      {/* Selecting the type from the user */}
+      <div
+        style={{
+          padding: "20px",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          width: "100%",
+        }}
+      >
+        <MyForm onSelectionChange={handleSelectionChange} />
+      </div>
+      <Container>
         <Box sx={{ my: 4 }}>
           <Typography
             variant="h4"
@@ -179,38 +223,38 @@ export default function Generate() {
             gutterBottom
             sx={{ fontWeight: "bold", textAlign: "center" }}
           >
-            Generate Flashcards
+            Generate {type}
           </Typography>
           <TextField
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          label="Enter text"
-          fullWidth
-          multiline
-          rows={4}
-          variant="outlined"
-          sx={{
-            mb: 3,
-            backgroundColor: "transparent",
-            "& .MuiOutlinedInput-root": {
-              "& fieldset": {
-                borderColor: "#878282", 
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            label="Enter text"
+            fullWidth
+            multiline
+            rows={4}
+            variant="outlined"
+            sx={{
+              mb: 3,
+              backgroundColor: "transparent",
+              "& .MuiOutlinedInput-root": {
+                "& fieldset": {
+                  borderColor: "#878282",
+                },
+                "&:hover fieldset": {
+                  borderColor: "#878282",
+                },
+                "&.Mui-focused fieldset": {
+                  borderColor: "#878282",
+                },
               },
-              "&:hover fieldset": {
-                borderColor: "#878282", 
+              "& .MuiInputLabel-root": {
+                color: "#fff",
               },
-              "&.Mui-focused fieldset": {
-                borderColor: "#878282", 
+              "& .MuiInputBase-input": {
+                color: "#fff",
               },
-            },
-            "& .MuiInputLabel-root": {
-              color: "#fff", 
-            },
-            "& .MuiInputBase-input": {
-              color: "#fff", 
-            },
-          }}
-        />
+            }}
+          />
           <Button
             variant="contained"
             color="primary"
@@ -218,40 +262,45 @@ export default function Generate() {
             fullWidth
             sx={{ py: 2, fontSize: "1rem" }}
           >
-            Generate Flashcards
+            Generate {type}
           </Button>
         </Box>
-
-        {flashcards.length > 0 && (
-          <Box sx={{ mt: 4 }}>
-            <Typography
-              variant="h5"
-              component="h2"
-              gutterBottom
-              sx={{ textAlign: "center", fontWeight: "bold" }}
-            >
-              Generated Flashcards
-            </Typography>
-            <FlashcardsGrid flashcards={flashcards} />
-
-            <Box sx={{ mt: 4, display: "flex", justifyContent: "center" }}>
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={handleOpenDialog}
-                sx={{ px: 4, py: 2, fontSize: "1rem" }}
+        {quizzes.length > 0 && type === "Quizzes" ? (
+          <Quiz questions={quizzes} />
+        ) : (
+          flashcards.length > 0 && (
+            <Box sx={{ mt: 4 }}>
+              <Typography
+                variant="h5"
+                component="h2"
+                gutterBottom
+                sx={{ textAlign: "center", fontWeight: "bold" }}
               >
-                Save Flashcards
-              </Button>
+                Generated Flashcards
+              </Typography>
+              <FlashcardsGrid flashcards={flashcards} />
             </Box>
+          )
+        )}
+
+        {(quizzes.length > 0 || flashcards.length > 0) && (
+          <Box sx={{ mt: 4, display: "flex", justifyContent: "center" }}>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={handleOpenDialog}
+              sx={{ px: 4, py: 2, fontSize: "1rem" }}
+            >
+              Save {type}
+            </Button>
           </Box>
         )}
 
         <Dialog open={dialogOpen} onClose={handleCloseDialog}>
-          <DialogTitle>Save Flashcard Set</DialogTitle>
+          <DialogTitle>Save {type} Set</DialogTitle>
           <DialogContent>
             <DialogContentText>
-              Please enter a name for your flashcard set.
+              Please enter a name for your {type} set.
             </DialogContentText>
             <TextField
               autoFocus
@@ -266,7 +315,7 @@ export default function Generate() {
           </DialogContent>
           <DialogActions>
             <Button onClick={handleCloseDialog}>Cancel</Button>
-            <Button onClick={saveFlashcards} color="primary">
+            <Button onClick={saveContent} color="primary">
               Save
             </Button>
           </DialogActions>
