@@ -51,8 +51,8 @@ export default function Generate() {
   const [quizzes, setQuizzes] = useState([]);
   const [setName, setSetName] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [type, setType] = useState("Flashcards");
-  const [submissionType, setSubmissionType] = useState("text");
+  const [outputType, setOutputType] = useState("Flashcards");
+  const [inputType, setInputType] = useState("text");
 
   const router = useRouter();
   const styles = {
@@ -60,14 +60,14 @@ export default function Generate() {
   };
 
   useEffect(() => {
-    if (type === "Quizzes") {
+    if (outputType === "Quizzes") {
       setFlashcards([]);
     } else {
       setQuizzes([]);
     }
-  }, [type]);
+  }, [outputType]);
   const handleSelectionChange = (value) => {
-    setType(value);
+    setOutputType(value);
   };
 
   useEffect(() => {
@@ -96,7 +96,7 @@ export default function Generate() {
     try {
       const response = await fetch("/api/generate", {
         method: "POST",
-        body: JSON.stringify({ text, type }),
+        body: JSON.stringify({ text, outputType, inputType }),
       });
 
       if (!response.ok) {
@@ -104,7 +104,7 @@ export default function Generate() {
       }
 
       const data = await response.json();
-      if (type === "Quizzes") {
+      if (outputType === "Quizzes") {
         setQuizzes(data);
       } else {
         setFlashcards(data);
@@ -145,7 +145,7 @@ export default function Generate() {
       }
 
       // Check the type and handle accordingly
-      if (type === "Flashcards") {
+      if (outputType === "Flashcards") {
         const flashcardsCollectionRef = collection(
           db,
           `users/${userId}/flashcardSets`
@@ -160,7 +160,7 @@ export default function Generate() {
 
           batch.set(docRef, flashcard);
         });
-      } else if (type === "Quizzes") {
+      } else if (outputType === "Quizzes") {
         const quizzesCollectionRef = collection(db, `users/${userId}/quizSets`);
         const setDocRef = doc(quizzesCollectionRef, sanitizedSetName);
 
@@ -225,7 +225,7 @@ export default function Generate() {
             gutterBottom
             sx={{ fontWeight: "bold", textAlign: "center" }}
           >
-            Generate {type}
+            Generate {outputType}
           </Typography>
           <TextField
             value={text}
@@ -259,19 +259,19 @@ export default function Generate() {
           />
           <ButtonGroup fullWidth sx={{ py: 2, fontSize: "1rem" }}>
             <Button
-              variant={submissionType === "text" ? "contained" : "outlined"}
+              variant={inputType === "text" ? "contained" : "outlined"}
               color="secondary"
               onClick={() => {
-                setSubmissionType("text");
+                setInputType("text");
               }}
             >
               Text
             </Button>
             <Button
-              variant={submissionType === "link" ? "contained" : "outlined"}
+              variant={inputType === "youtube" ? "contained" : "outlined"}
               color="secondary"
               onClick={() => {
-                setSubmissionType("link");
+                setInputType("youtube");
               }}
             >
               Link
@@ -284,10 +284,10 @@ export default function Generate() {
             fullWidth
             sx={{ py: 2, fontSize: "1rem" }}
           >
-            Generate {type}
+            Generate {outputType}
           </Button>
         </Box>
-        {quizzes.length > 0 && type === "Quizzes" ? (
+        {quizzes.length > 0 && outputType === "Quizzes" ? (
           <Quiz questions={quizzes} />
         ) : (
           flashcards.length > 0 && (
@@ -313,16 +313,16 @@ export default function Generate() {
               onClick={handleOpenDialog}
               sx={{ px: 4, py: 2, fontSize: "1rem" }}
             >
-              Save {type}
+              Save {outputType}
             </Button>
           </Box>
         )}
 
         <Dialog open={dialogOpen} onClose={handleCloseDialog}>
-          <DialogTitle>Save {type} Set</DialogTitle>
+          <DialogTitle>Save {outputType} Set</DialogTitle>
           <DialogContent>
             <DialogContentText>
-              Please enter a name for your {type} set.
+              Please enter a name for your {outputType} set.
             </DialogContentText>
             <TextField
               autoFocus
