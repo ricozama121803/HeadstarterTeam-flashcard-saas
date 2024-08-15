@@ -20,7 +20,7 @@ const Flashcard = ({ frontComponent, backComponent }) => {
       backComponent={backComponent}
       frontStyle={{
         ...styles.card,
-        ...{ backgroundColor: "lightblue", fontWeight: "bold" },
+        ...{ backgroundColor: "lightslategray", fontWeight: "bold" },
       }}
       backStyle={{ ...styles.card, ...{ backgroundColor: "lightcoral" } }}
     />
