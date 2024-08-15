@@ -19,6 +19,7 @@ import {
   AppBar,
   Toolbar,
 } from "@mui/material";
+import FlashcardsGrid from "../flashcard/flashcardGrid";
 import { doc, collection, getDoc, writeBatch } from "firebase/firestore";
 import db from "/firebase"; // No curly braces needed for default exports
 import { useAuth } from "@clerk/clerk-react";
@@ -33,6 +34,9 @@ export default function Generate() {
   const [dialogOpen, setDialogOpen] = useState(false);
 
   const router = useRouter();
+  const styles = {
+    card: { background: "blue", color: "white", borderRadius: 20 },
+  };
 
   useEffect(() => {
     if (!isLoaded) {
@@ -187,27 +191,8 @@ export default function Generate() {
             >
               Generated Flashcards
             </Typography>
-            <Grid container spacing={2}>
-              {flashcards.map((flashcard, index) => (
-                <Grid item xs={12} sm={6} md={4} key={index}>
-                  <Card sx={{ height: "100%", textAlign: "center", p: 3 }}>
-                    <CardContent>
-                      <Typography variant="h6" sx={{ fontWeight: "bold" }}>
-                        Front:
-                      </Typography>
-                      <Typography>{flashcard.front}</Typography>
-                      <Typography
-                        variant="h6"
-                        sx={{ mt: 2, fontWeight: "bold" }}
-                      >
-                        Back:
-                      </Typography>
-                      <Typography>{flashcard.back}</Typography>
-                    </CardContent>
-                  </Card>
-                </Grid>
-              ))}
-            </Grid>
+            <FlashcardsGrid flashcards={flashcards} />
+
             <Box sx={{ mt: 4, display: "flex", justifyContent: "center" }}>
               <Button
                 variant="contained"
