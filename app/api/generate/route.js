@@ -15,14 +15,8 @@ You should return in the following JSON format:
 } `;
 
 export async function POST(req) {
-  const openai = new OpenAI();
-  const data = await req.text();
-
   const apiKey = process.env.NEXT_PUBLIC_OPENAI_API_KEY;
-}
-
-export async function POST(req) {
-  const openai = new OpenAI();
+  const openai = new OpenAI(apiKey);
   const data = await req.text();
 
   const completion = await openai.chat.completions.create({
