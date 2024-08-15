@@ -7,37 +7,27 @@ import {
   Button,
   Typography,
   Box,
-  Grid,
-  Card,
-  CardContent,
+  CircularProgress,
+  AppBar,
+  Toolbar,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogContentText,
   DialogActions,
-  CircularProgress,
-  AppBar,
-  Toolbar,
 } from "@mui/material";
 import FlashcardsGrid from "../flashcard/flashcardGrid";
-import db from "/firebase";
+import { db, collection, addDoc } from '/firebase';
 import { useAuth } from "@clerk/clerk-react";
 import { useRouter } from "next/navigation";
 import {
-  collection,
   doc,
-  addDoc,
-  setDoc,
   getDoc,
-  getDocs,
-  query,
-  orderBy,
-  serverTimestamp,
-  deleteDoc,
   writeBatch,
 } from "firebase/firestore";
+
 export default function Generate() {
-  const { getToken, isLoaded, isSignedIn, signOut, userId } = useAuth();
+  const { isLoaded, isSignedIn, signOut, userId } = useAuth();
   const [loading, setLoading] = useState(true);
   const [text, setText] = useState("");
   const [flashcards, setFlashcards] = useState([]);
@@ -45,14 +35,9 @@ export default function Generate() {
   const [dialogOpen, setDialogOpen] = useState(false);
 
   const router = useRouter();
-  const styles = {
-    card: { background: "blue", color: "white", borderRadius: 20 },
-  };
 
   useEffect(() => {
-    if (!isLoaded) {
-      return;
-    }
+    if (!isLoaded) return;
     if (isSignedIn) {
       setLoading(false);
     } else {
@@ -60,7 +45,6 @@ export default function Generate() {
     }
   }, [isLoaded, isSignedIn, router]);
 
-  // Sign out user when user clicks the sign-out button
   const handleSignOut = async () => {
     await signOut();
     router.push("/");
@@ -75,7 +59,10 @@ export default function Generate() {
     try {
       const response = await fetch("/api/generate", {
         method: "POST",
-        body: text,
+        body: JSON.stringify({ text }),
+        headers: {
+          "Content-Type": "application/json",
+        },
       });
 
       if (!response.ok) {
@@ -101,14 +88,15 @@ export default function Generate() {
 
     try {
       const batch = writeBatch(db);
-
+      const sanitizedSetName = setName.replace(/[^\w\s]/gi, "");
       const userDocRef = doc(db, "users", userId);
 
+      console.log("Fetching user document...");
       const userDocSnap = await getDoc(userDocRef);
-      const sanitizedSetName = setName.replace(/[^\w\s]/gi, "");
 
       if (userDocSnap.exists()) {
         const flashcardSets = userDocSnap.data().flashcardSets || [];
+        console.log("Existing flashcard sets:", flashcardSets);
 
         if (flashcardSets.some((set) => set.name === sanitizedSetName)) {
           alert("A flashcard set with the same name already exists.");
@@ -132,6 +120,7 @@ export default function Generate() {
           collection(setDocRef, "flashcards"),
           `flashcard_${index}`
         );
+        console.log("Saving flashcard:", flashcard);
         batch.set(docRef, flashcard);
       });
 
@@ -182,35 +171,35 @@ export default function Generate() {
             Generate Flashcards
           </Typography>
           <TextField
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          label="Enter text"
-          fullWidth
-          multiline
-          rows={4}
-          variant="outlined"
-          sx={{
-            mb: 3,
-            backgroundColor: "transparent",
-            "& .MuiOutlinedInput-root": {
-              "& fieldset": {
-                borderColor: "#878282", 
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            label="Enter text"
+            fullWidth
+            multiline
+            rows={4}
+            variant="outlined"
+            sx={{
+              mb: 3,
+              backgroundColor: "transparent",
+              "& .MuiOutlinedInput-root": {
+                "& fieldset": {
+                  borderColor: "#878282",
+                },
+                "&:hover fieldset": {
+                  borderColor: "#878282",
+                },
+                "&.Mui-focused fieldset": {
+                  borderColor: "#878282",
+                },
               },
-              "&:hover fieldset": {
-                borderColor: "#878282", 
+              "& .MuiInputLabel-root": {
+                color: "#fff",
               },
-              "&.Mui-focused fieldset": {
-                borderColor: "#878282", 
+              "& .MuiInputBase-input": {
+                color: "#fff",
               },
-            },
-            "& .MuiInputLabel-root": {
-              color: "#fff", 
-            },
-            "& .MuiInputBase-input": {
-              color: "#fff", 
-            },
-          }}
-        />
+            }}
+          />
           <Button
             variant="contained"
             color="primary"
