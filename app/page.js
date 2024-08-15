@@ -1,15 +1,14 @@
 "use client";
 import Image from "next/image";
-import styles from "./page.module.css";
 import { AppBar, Toolbar, Typography, Button, Box, Grid } from "@mui/material";
 import { SignedIn, SignedOut, UserButton } from "@clerk/nextjs"; // Assuming you're using Clerk.js
 import getStripe from "../utils/get-stripe"; // Assuming you have a utility to get Stripe instance
 
 export default function Home() {
   const handleSubmit = async () => {
-    const checkoutSession = await fetch('/api/checkout_sessions', {
-      method: 'POST',
-      headers: { origin: 'http://localhost:3000' },
+    const checkoutSession = await fetch("/api/checkout_sessions", {
+      method: "POST",
+      headers: { origin: "http://localhost:3000" },
     });
     const checkoutSessionJson = await checkoutSession.json();
 
@@ -31,8 +30,12 @@ export default function Home() {
             Flashcard SaaS
           </Typography>
           <SignedOut>
-            <Button color="inherit" href="/sign-in">Login</Button>
-            <Button color="inherit" href="/sign-up">Sign Up</Button>
+            <Button color="inherit" href="/sign-in">
+              Login
+            </Button>
+            <Button color="inherit" href="/sign-up">
+              Sign Up
+            </Button>
           </SignedOut>
           <SignedIn>
             <UserButton />
@@ -40,14 +43,19 @@ export default function Home() {
         </Toolbar>
       </AppBar>
 
-      <Box sx={{ textAlign: 'center', my: 4 }}>
+      <Box sx={{ textAlign: "center", my: 4 }}>
         <Typography variant="h2" component="h1" gutterBottom>
           Welcome to Flashcard SaaS
         </Typography>
         <Typography variant="h5" component="h2" gutterBottom>
           The easiest way to create flashcards from your text.
         </Typography>
-        <Button variant="contained" color="primary" sx={{ mt: 2, mr: 2 }} href="/generate">
+        <Button
+          variant="contained"
+          color="primary"
+          sx={{ mt: 2, mr: 2 }}
+          href="/generate"
+        >
           Get Started
         </Button>
         <Button variant="outlined" color="primary" sx={{ mt: 2 }}>
@@ -56,14 +64,18 @@ export default function Home() {
       </Box>
 
       <Box sx={{ my: 6 }}>
-        <Typography variant="h4" component="h2" gutterBottom>Features</Typography>
+        <Typography variant="h4" component="h2" gutterBottom>
+          Features
+        </Typography>
         <Grid container spacing={4}>
           {/* Feature items */}
         </Grid>
       </Box>
 
-      <Box sx={{ my: 6, textAlign: 'center' }}>
-        <Typography variant="h4" component="h2" gutterBottom>Pricing</Typography>
+      <Box sx={{ my: 6, textAlign: "center" }}>
+        <Typography variant="h4" component="h2" gutterBottom>
+          Pricing
+        </Typography>
         <Grid container spacing={4} justifyContent="center">
           {/* Pricing plans */}
           <Button variant="contained" color="primary" onClick={handleSubmit}>
