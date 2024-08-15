@@ -12,25 +12,31 @@ You should return in the following JSON format:
       "back": "Back of the card"
     }
   ]
-} `;
+}`;
 
 export async function POST(req) {
-  const apiKey = process.env.NEXT_PUBLIC_OPENAI_API_KEY;
-  const openai = new OpenAI(apiKey);
-  const data = await req.text();
-
-  const completion = await openai.chat.completions.create({
-    messages: [
-      { role: "system", content: systemPrompt },
-      { role: "user", content: data },
-    ],
-    model: "gpt-4o-mini",
-    response_format: { type: "json_object" },
+  const openai = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY,
   });
 
-  // Parse the JSON response from the OpenAI API
-  const flashcards = JSON.parse(completion.choices[0].message.content);
+  const data = await req.text();
 
-  // Return the flashcards as a JSON response
-  return NextResponse.json(flashcards.flashcards);
+  try {
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: data },
+      ],
+    });
+
+    const flashcards = JSON.parse(completion.choices[0].message.content);
+    return NextResponse.json(flashcards.flashcards);
+  } catch (error) {
+    console.error("Error generating flashcards:", error);
+    return NextResponse.json(
+      { error: "Failed to generate flashcards" },
+      { status: 500 }
+    );
+  }
 }
