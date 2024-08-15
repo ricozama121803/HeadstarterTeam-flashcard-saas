@@ -1,4 +1,10 @@
-const ResultPage = () => {
+'use client'
+import { Box, Button, CircularProgress, Container, Typography } from "@mui/material"
+import { useSearchParams } from "next/navigation"
+import { useRouter } from "next/navigation"
+import { useState, useEffect } from "react"
+
+export default function ResultPage() {
     const router = useRouter()
     const searchParams = useSearchParams()
     const session_id = searchParams.get('session_id')
@@ -59,6 +65,9 @@ const ResultPage = () => {
                   order details shortly.
                 </Typography>
               </Box>
+              <Button onClick={()=>router.push('/')}>
+                Return
+              </Button>
             </>
           ) : (
             <>
@@ -68,6 +77,9 @@ const ResultPage = () => {
                   Your payment was not successful. Please try again.
                 </Typography>
               </Box>
+              <Button onClick={()=>router.push('/')}>
+                Return
+              </Button>
             </>
           )}
         </Container>
