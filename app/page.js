@@ -22,10 +22,11 @@ import WaitlistForm from "./UI-components/waitlist";
 export default function Home() {
   const router = useRouter();
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (amount) => {
     const checkoutSession = await fetch("/api/checkout_sessions", {
       method: "POST",
-      headers: { origin: "http://localhost:3000" },
+      headers: { origin: "http://localhost:3000", "Content-Type": "application/json" },
+      body: JSON.stringify({ amount: amount })
     });
     const checkoutSessionJson = await checkoutSession.json();
 
@@ -306,7 +307,7 @@ export default function Home() {
                   variant="contained"
                   color="primary"
                   sx={{ mt: 2, px: 4, py: 2 }}
-                  onClick={handleSubmit}
+                  onClick={()=>{handleSubmit(9.99)}}
                 >
                   Checkout
                 </Button>
@@ -352,7 +353,7 @@ export default function Home() {
                   variant="contained"
                   color="primary"
                   sx={{ mt: 2, px: 4, py: 2 }}
-                  onClick={handleSubmit}
+                  onClick={()=>{handleSubmit(19.99)}}
                 >
                   Checkout
                 </Button>
