@@ -100,11 +100,11 @@ const Quiz = ({ questions }) => {
       sx={{
         textAlign: "center",
         marginTop: "2rem",
-
         padding: "2rem",
         borderRadius: "8px",
-        width: "90%",
-        textAlignLast: "center",
+        width: "100%",
+        textAlign: "center",
+        bgcolor: "#B26488",
       }}
     >
       <Typography variant="h5" gutterBottom sx={{ color: "#fff" }}>
@@ -124,11 +124,11 @@ const Quiz = ({ questions }) => {
                 backgroundColor:
                   option === selectedOption
                     ? selectedAnswerStatus === "correct"
-                      ? "green"
-                      : "red"
+                      ? "#a7c957" // green
+                      : "#d62839" // red
                     : option === rightAnswer && selectedOption !== rightAnswer
-                    ? "green"
-                    : "#333",
+                    ? "#a7c957" // green
+                    : "#333", // default
                 margin: "0.5rem",
                 width: "100%",
                 borderRadius: "8px",

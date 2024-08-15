@@ -342,6 +342,12 @@ export default function Generate() {
             </Button>
           </DialogActions>
         </Dialog>
+        <div
+          style={{
+            width: "100%",
+            height: "200px",
+          }}
+        ></div>
       </Container>
     </>
   );
