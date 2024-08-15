@@ -19,6 +19,7 @@ import {
   AppBar,
   Toolbar,
   InputLabel,
+  ButtonGroup,
 } from "@mui/material";
 import FlashcardsGrid from "../flashcard/flashcardGrid";
 import db from "/firebase";
@@ -51,6 +52,7 @@ export default function Generate() {
   const [setName, setSetName] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [type, setType] = useState("Flashcards");
+  const [submissionType, setSubmissionType] = useState("text");
 
   const router = useRouter();
   const styles = {
@@ -255,6 +257,26 @@ export default function Generate() {
               },
             }}
           />
+          <ButtonGroup fullWidth sx={{ py: 2, fontSize: "1rem" }}>
+            <Button
+              variant={submissionType === "text" ? "contained" : "outlined"}
+              color="secondary"
+              onClick={() => {
+                setSubmissionType("text");
+              }}
+            >
+              Text
+            </Button>
+            <Button
+              variant={submissionType === "link" ? "contained" : "outlined"}
+              color="secondary"
+              onClick={() => {
+                setSubmissionType("link");
+              }}
+            >
+              Link
+            </Button>
+          </ButtonGroup>
           <Button
             variant="contained"
             color="primary"
