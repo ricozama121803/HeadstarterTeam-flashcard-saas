@@ -20,13 +20,24 @@ import {
   Toolbar,
 } from "@mui/material";
 import FlashcardsGrid from "../flashcard/flashcardGrid";
-import { doc, collection, getDoc, writeBatch } from "firebase/firestore";
-import db from "/firebase"; // No curly braces needed for default exports
+import db from "/firebase";
 import { useAuth } from "@clerk/clerk-react";
 import { useRouter } from "next/navigation";
-
+import {
+  collection,
+  doc,
+  addDoc,
+  setDoc,
+  getDoc,
+  getDocs,
+  query,
+  orderBy,
+  serverTimestamp,
+  deleteDoc,
+  writeBatch,
+} from "firebase/firestore";
 export default function Generate() {
-  const { getToken, isLoaded, isSignedIn, signOut } = useAuth();
+  const { getToken, isLoaded, isSignedIn, signOut, userId } = useAuth();
   const [loading, setLoading] = useState(true);
   const [text, setText] = useState("");
   const [flashcards, setFlashcards] = useState([]);
@@ -89,30 +100,40 @@ export default function Generate() {
     }
 
     try {
-      const token = await getToken(); // Ensure user is authenticated before saving
-      if (!token) {
-        alert("Authentication error. Please sign in again.");
-        return;
-      }
-
-      const userDocRef = doc(collection(db, "users"), token.sub);
-      const userDocSnap = await getDoc(userDocRef);
-
       const batch = writeBatch(db);
 
+      const userDocRef = doc(db, "users", userId);
+
+      const userDocSnap = await getDoc(userDocRef);
+      const sanitizedSetName = setName.replace(/[^\w\s]/gi, "");
+
       if (userDocSnap.exists()) {
-        const userData = userDocSnap.data();
-        const updatedSets = [
-          ...(userData.flashcardSets || []),
-          { name: setName },
-        ];
-        batch.update(userDocRef, { flashcardSets: updatedSets });
+        const flashcardSets = userDocSnap.data().flashcardSets || [];
+
+        if (flashcardSets.some((set) => set.name === sanitizedSetName)) {
+          alert("A flashcard set with the same name already exists.");
+          return;
+        } else {
+          flashcardSets.push({ name: sanitizedSetName });
+          batch.update(userDocRef, { flashcardSets });
+        }
       } else {
-        batch.set(userDocRef, { flashcardSets: [{ name: setName }] });
+        batch.set(userDocRef, { flashcardSets: [{ name: sanitizedSetName }] });
       }
 
-      const setDocRef = doc(collection(userDocRef, "flashcardSets"), setName);
-      batch.set(setDocRef, { flashcards });
+      const flashcardSetsCollectionRef = collection(
+        db,
+        `users/${userId}/flashcardSets`
+      );
+      const setDocRef = doc(flashcardSetsCollectionRef, sanitizedSetName);
+
+      flashcards.forEach((flashcard, index) => {
+        const docRef = doc(
+          collection(setDocRef, "flashcards"),
+          `flashcard_${index}`
+        );
+        batch.set(docRef, flashcard);
+      });
 
       await batch.commit();
 
