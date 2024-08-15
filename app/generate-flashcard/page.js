@@ -161,7 +161,7 @@ export default function Generate() {
 
   return (
     <>
-      <AppBar position="static" sx={{ backgroundColor: "#333" }}>
+      <AppBar position="static" sx={{ backgroundColor: "#040f24" }}>
         <Toolbar>
           <Typography variant="h6" sx={{ flexGrow: 1 }}>
             Flashcard SaaS
@@ -182,15 +182,35 @@ export default function Generate() {
             Generate Flashcards
           </Typography>
           <TextField
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            label="Enter text"
-            fullWidth
-            multiline
-            rows={4}
-            variant="outlined"
-            sx={{ mb: 3 }}
-          />
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          label="Enter text"
+          fullWidth
+          multiline
+          rows={4}
+          variant="outlined"
+          sx={{
+            mb: 3,
+            backgroundColor: "transparent",
+            "& .MuiOutlinedInput-root": {
+              "& fieldset": {
+                borderColor: "#878282", 
+              },
+              "&:hover fieldset": {
+                borderColor: "#878282", 
+              },
+              "&.Mui-focused fieldset": {
+                borderColor: "#878282", 
+              },
+            },
+            "& .MuiInputLabel-root": {
+              color: "#fff", 
+            },
+            "& .MuiInputBase-input": {
+              color: "#fff", 
+            },
+          }}
+        />
           <Button
             variant="contained"
             color="primary"
