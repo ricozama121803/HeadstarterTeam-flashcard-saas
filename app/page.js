@@ -18,6 +18,7 @@ import {
   School as SchoolIcon,
   AutoStories as StoryIcon,
 } from "@mui/icons-material";
+import Image from "next/image";
 import WaitlistForm from "./UI-components/waitlist";
 import Quiz from "./UI-components/Quizzes";
 export default function Home() {
@@ -48,17 +49,17 @@ export default function Home() {
     <>
       <AppBar position="static" sx={{ backgroundColor: "#040f24" }}>
         <Toolbar>
-           <Typography
-          variant="h5"
-          style={{
-            flexGrow: 1,
-            fontWeight: "bold",
-            fontSize: "2rem",
-            textShadow: "1px 1px 2px rgba(0, 0, 0, 0.2)"
-          }}
-        >
-          QuizzAI
-        </Typography>
+          <Typography
+            variant="h5"
+            style={{
+              flexGrow: 1,
+              fontWeight: "bold",
+              fontSize: "2rem",
+              textShadow: "1px 1px 2px rgba(0, 0, 0, 0.2)",
+            }}
+          >
+            QuizzAI
+          </Typography>
           <SignedOut>
             <Button color="inherit" href="/sign-in" sx={{ ml: 2 }}>
               Login
@@ -73,36 +74,65 @@ export default function Home() {
         </Toolbar>
       </AppBar>
 
-      <Container maxWidth="lg" sx={{ py: 8 }}>
-        <Box sx={{ textAlign: "center", my: 8 }}>
+      <Container maxWidth="lg" sx={{ py: 12 }}>
+        <Box sx={{ textAlign: "center", position: "relative" }}>
+          <Image
+            src="/sparkle.png"
+            alt="Spark Icon"
+            width={70}
+            height={70}
+            style={{
+              position: "absolute",
+              left: "-10px",
+              top: "-30px", // Lower the top position to bring it closer vertically
+              transform: "rotate(-15deg)", // Slight tilt
+              zIndex: 0,
+            }}
+          />
+
           <Typography
             variant="h1"
             component="h1"
             gutterBottom
             sx={{
               fontWeight: "bold",
-              mb: 5,
-              background: "linear-gradient(90deg, #578596, #579659)", // Gradient colors
+              mb: 1,
+              background: "linear-gradient(90deg, #578596, #579659)",
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
               backgroundClip: "text",
               textFillColor: "transparent",
-              fontFamily: "Times New Roman, serif",
+              fontFamily: "Arial, sans-serif",
               fontSize: "5rem",
+              zIndex: 1,
+              position: "relative",
             }}
           >
-            Empower Your Learning!
+            Empower your learning.
+          </Typography>
+          <Typography
+            variant="h2"
+            component="h2"
+            gutterBottom
+            sx={{
+              mb: 3,
+              color: "#dce3dc",
+              fontFamily: "Arial, sans-serif",
+              fontWeight: "bold",
+            }}
+          >
+            With QuizzAI
           </Typography>
 
           <Typography
             variant="h5"
             component="h4"
             gutterBottom
-            sx={{ mb: 4, color: "#dce3dc" }}
+            sx={{ mb: 3, color: "#dce3dc", fontWeight: "bold" }}
           >
-            Choose your subject, craft your flashcards, <br />
-            and let our smart platform guide your learning journey. <br />➝
-            Effortless Learning ➝ Endless Possibilities!
+            Choose your subject, craft your flashcards, and let QuizzAI guide
+            your learning journey. <br />➝ Effortless Learning ➝ Endless
+            Possibilities!
           </Typography>
 
           <WaitlistForm />
@@ -151,7 +181,8 @@ export default function Home() {
                   Smart Flashcards
                 </Typography>
                 <Typography variant="body1" sx={{ color: "#878282" }}>
-                  Our AI intelligently breaks down your text and lectures into concise flashcards.
+                  Our AI intelligently breaks down your text and lectures into
+                  concise flashcards.
                 </Typography>
               </CardContent>
             </Card>
@@ -179,10 +210,11 @@ export default function Home() {
                   variant="h5"
                   sx={{ fontWeight: "bold", color: "#fff", mb: 1 }}
                 >
-                 Quiz Creation
+                  Quiz Creation
                 </Typography>
                 <Typography variant="body1" sx={{ color: "#878282" }}>
-                  Create quizzes instantly to test your knowledge. Perfect for quick reviews and self-assessments
+                  Create quizzes instantly to test your knowledge. Perfect for
+                  quick reviews and self-assessments
                 </Typography>
               </CardContent>
             </Card>
@@ -213,7 +245,8 @@ export default function Home() {
                   Quick Retrieval
                 </Typography>
                 <Typography variant="body1" sx={{ color: "#878282" }}>
-                  Store your flashcards securely and retrieve them in an instant, ensuring fast and efficient learning.
+                  Store your flashcards securely and retrieve them in an
+                  instant, ensuring fast and efficient learning.
                 </Typography>
               </CardContent>
             </Card>
@@ -227,10 +260,17 @@ export default function Home() {
           variant="h2"
           component="h2"
           gutterBottom
-          sx={{ color: "#dce3dc", fontWeight: "bold", mb: 8 }}
+          sx={{ color: "#dce3dc", fontWeight: "bold", mb: 1 }}
         >
           Pricing
         </Typography>
+        <Typography
+          variant="h5"
+          sx={{ fontWeight: "bold", color: "#fff", mt: 1, mb: 4 }}
+        >
+          Choose the plan that best fits your learning needs
+        </Typography>
+
         <Grid container spacing={4} justifyContent="center">
           <Grid item xs={12} sm={6} md={4}>
             <Card
@@ -270,7 +310,7 @@ export default function Home() {
                 <Button
                   variant="contained"
                   color="primary"
-                  sx={{ mt: 2, px: 4, py: 2 }}
+                  sx={{ mt: 2, px: 2, py: 1.5 }}
                   onClick={() => router.push("/sign-up")}
                 >
                   Get Started
@@ -316,12 +356,12 @@ export default function Home() {
                 <Button
                   variant="contained"
                   color="primary"
-                  sx={{ mt: 2, px: 4, py: 2 }}
+                  sx={{ mt: 2, px: 3, py: 1.5 }}
                   onClick={() => {
                     handleSubmit(9.99);
                   }}
                 >
-                  Checkout
+                  Upgrade to Basic
                 </Button>
               </CardContent>
             </Card>
@@ -364,18 +404,19 @@ export default function Home() {
                 <Button
                   variant="contained"
                   color="primary"
-                  sx={{ mt: 2, px: 4, py: 2 }}
+                  sx={{ mt: 2, px: 3, py: 1.5 }}
                   onClick={() => {
                     handleSubmit(19.99);
                   }}
                 >
-                  Checkout
+                  Upgrade to Pro
                 </Button>
               </CardContent>
             </Card>
           </Grid>
         </Grid>
       </Box>
+
       {/* Call to Action Section */}
       <Box sx={{ py: 8, px: 10, textAlign: "center", color: "#fff" }}>
         <Typography
@@ -428,7 +469,7 @@ export default function Home() {
         }}
       >
         <Typography variant="body3">
-          © 2024 Flashcard AI. All rights reserved.
+          © 2024 QuizzAI. All rights reserved.
         </Typography>
       </Box>
     </>
