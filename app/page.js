@@ -48,9 +48,17 @@ export default function Home() {
     <>
       <AppBar position="static" sx={{ backgroundColor: "#040f24" }}>
         <Toolbar>
-          <Typography variant="h6" style={{ flexGrow: 1 }}>
-            Flashcard SaaS
-          </Typography>
+           <Typography
+          variant="h5"
+          style={{
+            flexGrow: 1,
+            fontWeight: "bold",
+            fontSize: "2rem",
+            textShadow: "1px 1px 2px rgba(0, 0, 0, 0.2)"
+          }}
+        >
+          QuizzAI
+        </Typography>
           <SignedOut>
             <Button color="inherit" href="/sign-in" sx={{ ml: 2 }}>
               Login
@@ -80,7 +88,7 @@ export default function Home() {
               backgroundClip: "text",
               textFillColor: "transparent",
               fontFamily: "Times New Roman, serif",
-              fontSize: "4rem",
+              fontSize: "5rem",
             }}
           >
             Empower Your Learning!
@@ -143,8 +151,7 @@ export default function Home() {
                   Smart Flashcards
                 </Typography>
                 <Typography variant="body1" sx={{ color: "#878282" }}>
-                  Our AI intelligently breaks down your text into concise
-                  flashcards, perfect for studying.
+                  Our AI intelligently breaks down your text and lectures into concise flashcards.
                 </Typography>
               </CardContent>
             </Card>
@@ -172,10 +179,10 @@ export default function Home() {
                   variant="h5"
                   sx={{ fontWeight: "bold", color: "#fff", mb: 1 }}
                 >
-                  Feature 2
+                 Quiz Creation
                 </Typography>
-                <Typography variant="body1" sx={{ color: "#fff" }}>
-                  Feature 2 description
+                <Typography variant="body1" sx={{ color: "#878282" }}>
+                  Create quizzes instantly to test your knowledge. Perfect for quick reviews and self-assessments
                 </Typography>
               </CardContent>
             </Card>
@@ -203,10 +210,10 @@ export default function Home() {
                   variant="h5"
                   sx={{ fontWeight: "bold", color: "#fff", mb: 1 }}
                 >
-                  Feature 3
+                  Quick Retrieval
                 </Typography>
-                <Typography variant="body1" sx={{ color: "#fff" }}>
-                  Feature 3 description
+                <Typography variant="body1" sx={{ color: "#878282" }}>
+                  Store your flashcards securely and retrieve them in an instant, ensuring fast and efficient learning.
                 </Typography>
               </CardContent>
             </Card>
