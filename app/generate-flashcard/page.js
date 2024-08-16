@@ -230,10 +230,10 @@ export default function Generate() {
           <TextField
             value={text}
             onChange={(e) => setText(e.target.value)}
-            label="Enter text"
+            label={inputType === "text" ? "Enter text" : "Enter URL"}
             fullWidth
             multiline
-            rows={4}
+            rows={inputType === "text" ? 3 : 1}
             variant="outlined"
             sx={{
               mb: 3,

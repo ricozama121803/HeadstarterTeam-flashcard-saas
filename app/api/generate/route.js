@@ -36,8 +36,8 @@ Return the result in the following JSON format:
 
 // maps outputType to corresponding outputContext
 const outputContext = {
-  "Flashcards": flashcardsPrompt,
-  "Quizzes": quizzesPrompt,
+  Flashcards: flashcardsPrompt,
+  Quizzes: quizzesPrompt,
 };
 
 // used claude to make these could prob be improved
@@ -67,19 +67,21 @@ Distill video content into effective learning tools, capturing the essence of th
 
 // maps inputType to corresponding inputContext
 const inputContext = {
-  "text": textContext,
-  "youtube": youtubeContext,
+  text: textContext,
+  youtube: youtubeContext,
 };
 
 // formats input based on inputType
-async function formatInput(input, inputType){
-  if (inputType==="youtube"){
+async function formatInput(input, inputType) {
+  if (inputType === "youtube") {
     const transcriptList = await YoutubeTranscript.fetchTranscript(input);
-    const transcript = transcriptList.map((transcript) => transcript.text).join(" ");
-    return transcript
+    const transcript = transcriptList
+      .map((transcript) => transcript.text)
+      .join(" ");
+    return transcript;
   }
-  return input
-};
+  return input;
+}
 
 export async function POST(req) {
   const openai = new OpenAI({
@@ -90,7 +92,6 @@ export async function POST(req) {
 
   const formattedInput = await formatInput(text, inputType);
   const systemPrompt = outputContext[outputType] + inputContext[inputType];
-  console.log(systemPrompt);
 
   try {
     const completion = await openai.chat.completions.create({
