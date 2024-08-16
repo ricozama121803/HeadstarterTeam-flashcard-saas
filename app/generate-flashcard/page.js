@@ -43,6 +43,8 @@ import {
   deleteDoc,
   writeBatch,
 } from "firebase/firestore";
+import InputField from "./inputField";
+import { matches } from "validator";
 export default function Generate() {
   const { getToken, isLoaded, isSignedIn, signOut, userId } = useAuth();
   const [loading, setLoading] = useState(true);
@@ -53,6 +55,7 @@ export default function Generate() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [outputType, setOutputType] = useState("Flashcards");
   const [inputType, setInputType] = useState("text");
+  const [isValidInput, setIsValidInput] = useState(true);
 
   const router = useRouter();
   const styles = {
@@ -81,6 +84,18 @@ export default function Generate() {
     }
   }, [isLoaded, isSignedIn, router]);
 
+  const youtubePattern = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/(watch\?v=)?([a-zA-Z0-9_-]{11})$/;
+
+  const validateText = async () => {
+    if (inputType === "text"){
+      return (typeof text === "string")
+    }
+
+    if (inputType === "youtube"){
+      return ((typeof text === "string") && matches(text, youtubePattern));
+    }
+  }
+
   // Sign out user when user clicks the sign-out button
   const handleSignOut = async () => {
     await signOut();
@@ -88,6 +103,11 @@ export default function Generate() {
   };
 
   const handleSubmit = async () => {
+    const valid = await validateText();
+    setIsValidInput(valid);
+    if (!valid){
+      return;
+    }
     if (!text.trim()) {
       alert("Please enter some text to generate flashcards.");
       return;
@@ -227,35 +247,11 @@ export default function Generate() {
           >
             Generate {outputType}
           </Typography>
-          <TextField
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            label={inputType === "text" ? "Enter text" : "Enter URL"}
-            fullWidth
-            multiline
-            rows={inputType === "text" ? 3 : 1}
-            variant="outlined"
-            sx={{
-              mb: 3,
-              backgroundColor: "transparent",
-              "& .MuiOutlinedInput-root": {
-                "& fieldset": {
-                  borderColor: "#878282",
-                },
-                "&:hover fieldset": {
-                  borderColor: "#878282",
-                },
-                "&.Mui-focused fieldset": {
-                  borderColor: "#878282",
-                },
-              },
-              "& .MuiInputLabel-root": {
-                color: "#fff",
-              },
-              "& .MuiInputBase-input": {
-                color: "#fff",
-              },
-            }}
+          <InputField
+            input={text}
+            inputType={inputType}
+            handleInputChange={setText}
+            invalid={!isValidInput}
           />
           <ButtonGroup fullWidth sx={{ py: 2, fontSize: "1rem" }}>
             <Button
@@ -263,6 +259,7 @@ export default function Generate() {
               color="secondary"
               onClick={() => {
                 setInputType("text");
+                setIsValidInput(true);
               }}
             >
               Text
@@ -272,6 +269,7 @@ export default function Generate() {
               color="secondary"
               onClick={() => {
                 setInputType("youtube");
+                setIsValidInput(true);
               }}
             >
               Link

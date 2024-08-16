@@ -22,6 +22,7 @@
     "react-dom": "^18",
     "reactjs-flip-card": "^2.0.3",
     "stripe": "^16.7.0",
+    "validator": "^13.12.0",
     "youtube-transcript": "^1.2.1"
   },
   "devDependencies": {
