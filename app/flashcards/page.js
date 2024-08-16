@@ -11,7 +11,6 @@ import {
   CardContent,
   Typography,
 } from "@mui/material";
-import { useState, useEffect } from "react";
 import { useUser } from "@clerk/clerk-react";
 
 export default function Flashcard() {
