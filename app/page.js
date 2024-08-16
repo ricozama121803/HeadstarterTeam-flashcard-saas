@@ -9,6 +9,8 @@ import {
   Container,
   Card,
   CardContent,
+  List,
+  ListItem,
 } from "@mui/material";
 import { SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
 import getStripe from "../utils/get-stripe";
@@ -272,148 +274,108 @@ export default function Home() {
         </Typography>
 
         <Grid container spacing={4} justifyContent="center">
-          <Grid item xs={12} sm={6} md={4}>
-            <Card
-              sx={{
-                p: 4,
-                textAlign: "center",
-                backgroundColor: "transparent",
-                transition: "transform 0.3s ease-in-out",
-                border: "2px solid grey",
-                borderRadius: "9px",
-                "&:hover": {
-                  transform: "scale(1.05)",
-                  boxShadow: "0 4px 8px rgba(0,0,0,0.2)",
-                  border: "2px solid white",
-                },
-              }}
-            >
-              <CardContent>
-                <Typography
-                  variant="h5"
-                  sx={{ fontWeight: "bold", color: "#fff" }}
+          {[
+            {
+              name: "Free Plan",
+              price: "$0 / month",
+              features: [
+                "50 flashcards and quizzes per month",
+                "Basic flashcard and quizzes features",
+                "Limited access to analytics",
+              ],
+              buttonText: "Get Started",
+              onClick: () => router.push("/sign-up"),
+            },
+            {
+              name: "Basic Plan",
+              price: "$9.99 / month",
+              features: [
+                "150 flashcards and quizzes per month",
+                "Advanced flashcard and quizzes features",
+                "Access to detailed analytics",
+                "Sync across multiple devices",
+              ],
+              buttonText: "Upgrade to Basic",
+              onClick: () => handleSubmit(9.99),
+            },
+            {
+              name: "Pro Plan",
+              price: "$19.99 / month",
+              features: [
+                "Unlimited flashcards and quizzes",
+                "All advanced flashcard and quizzes features",
+                "Priority support",
+                "Access to exclusive content",
+                "Customizable amnd shareable flashcards and quizzes",
+              ],
+              buttonText: "Upgrade to Pro",
+              onClick: () => handleSubmit(19.99),
+            },
+          ].map((plan, index) => (
+            <Grid item xs={12} sm={6} md={4} key={index}>
+              <Card
+                sx={{
+                  p: 4,
+                  textAlign: "center",
+                  backgroundColor: "transparent",
+                  transition: "transform 0.3s ease-in-out",
+                  border: "2px solid grey",
+                  borderRadius: "9px",
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "space-between",
+                  height: "100%", // Ensures all cards take up the same height
+                  "&:hover": {
+                    transform: "scale(1.05)",
+                    boxShadow: "0 4px 8px rgba(0,0,0,0.2)",
+                    border: "2px solid white",
+                  },
+                }}
+              >
+                <CardContent
+                  sx={{ flex: 1, display: "flex", flexDirection: "column" }}
                 >
-                  Free Plan
-                </Typography>
-                <Typography
-                  variant="body1"
-                  sx={{ mt: 2, fontSize: "1.5rem", color: "#fff" }}
-                >
-                  $0 / month
-                </Typography>
-                <Typography
-                  variant="body1"
-                  sx={{ mt: 2, fontSize: "1.3rem", color: "#878282" }}
-                >
-                  Access to basic flashcard features.
-                </Typography>
-                <Button
-                  variant="contained"
-                  color="primary"
-                  sx={{ mt: 2, px: 2, py: 1.5 }}
-                  onClick={() => router.push("/sign-up")}
-                >
-                  Get Started
-                </Button>
-              </CardContent>
-            </Card>
-          </Grid>
-          <Grid item xs={12} sm={6} md={4}>
-            <Card
-              sx={{
-                p: 4,
-                textAlign: "center",
-                backgroundColor: "transparent",
-                transition: "transform 0.3s ease-in-out",
-                border: "2px solid grey",
-                borderRadius: "9px",
-                "&:hover": {
-                  transform: "scale(1.05)",
-                  boxShadow: "0 4px 8px rgba(0,0,0,0.2)",
-                  border: "2px solid white",
-                },
-              }}
-            >
-              <CardContent>
-                <Typography
-                  variant="h5"
-                  sx={{ fontWeight: "bold", color: "#fff" }}
-                >
-                  Basic Plan
-                </Typography>
-                <Typography
-                  variant="body1"
-                  sx={{ mt: 2, fontSize: "1.5rem", color: "#fff" }}
-                >
-                  $9.99 / month
-                </Typography>
-                <Typography
-                  variant="body1"
-                  sx={{ mt: 2, fontSize: "1.3rem", color: "#878282" }}
-                >
-                  Access to basic flashcard features.
-                </Typography>
-                <Button
-                  variant="contained"
-                  color="primary"
-                  sx={{ mt: 2, px: 3, py: 1.5 }}
-                  onClick={() => {
-                    handleSubmit(9.99);
-                  }}
-                >
-                  Upgrade to Basic
-                </Button>
-              </CardContent>
-            </Card>
-          </Grid>
-          <Grid item xs={12} sm={6} md={4}>
-            <Card
-              sx={{
-                p: 4,
-                textAlign: "center",
-                backgroundColor: "transparent",
-                transition: "transform 0.3s ease-in-out",
-                border: "2px solid grey",
-                borderRadius: "9px",
-                "&:hover": {
-                  transform: "scale(1.05)",
-                  boxShadow: "0 4px 8px rgba(0,0,0,0.2)",
-                  border: "2px solid white",
-                },
-              }}
-            >
-              <CardContent>
-                <Typography
-                  variant="h5"
-                  sx={{ fontWeight: "bold", color: "#fff" }}
-                >
-                  Pro Plan
-                </Typography>
-                <Typography
-                  variant="body1"
-                  sx={{ mt: 2, fontSize: "1.5rem", color: "#fff" }}
-                >
-                  $19.99 / month
-                </Typography>
-                <Typography
-                  variant="body1"
-                  sx={{ mt: 2, fontSize: "1.3rem", color: "#878282" }}
-                >
-                  Access to basic flashcard features.
-                </Typography>
-                <Button
-                  variant="contained"
-                  color="primary"
-                  sx={{ mt: 2, px: 3, py: 1.5 }}
-                  onClick={() => {
-                    handleSubmit(19.99);
-                  }}
-                >
-                  Upgrade to Pro
-                </Button>
-              </CardContent>
-            </Card>
-          </Grid>
+                  <Typography
+                    variant="h5"
+                    sx={{ fontWeight: "bold", color: "#fff" }}
+                  >
+                    {plan.name}
+                  </Typography>
+                  <Typography
+                    variant="body1"
+                    sx={{ mt: 2, fontSize: "1.5rem", color: "#fff" }}
+                  >
+                    {plan.price}
+                  </Typography>
+                  <List
+                    sx={{
+                      mt: 2,
+                      fontSize: "1.3rem",
+                      color: "#878282",
+                      textAlign: "left",
+                      flex: 1,
+                    }}
+                  >
+                    {plan.features.map((feature, i) => (
+                      <ListItem key={i} sx={{ display: "list-item" }}>
+                        {feature}
+                      </ListItem>
+                    ))}
+                  </List>
+                </CardContent>
+                <Box sx={{ textAlign: "center" }}>
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    sx={{ mt: 2, px: 3, py: 1.5 }}
+                    onClick={plan.onClick}
+                  >
+                    {plan.buttonText}
+                  </Button>
+                </Box>
+              </Card>
+            </Grid>
+          ))}
         </Grid>
       </Box>
 
