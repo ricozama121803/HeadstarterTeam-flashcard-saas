@@ -80,7 +80,7 @@ export default function Home() {
               backgroundClip: "text",
               textFillColor: "transparent",
               fontFamily: "Times New Roman, serif",
-              fontSize: "4rem",
+              fontSize: "5rem",
             }}
           >
             Empower Your Learning!
@@ -143,8 +143,7 @@ export default function Home() {
                   Smart Flashcards
                 </Typography>
                 <Typography variant="body1" sx={{ color: "#878282" }}>
-                  Our AI intelligently breaks down your text into concise
-                  flashcards, perfect for studying.
+                  Our AI intelligently breaks down your text and lectures into concise flashcards.
                 </Typography>
               </CardContent>
             </Card>
@@ -172,10 +171,10 @@ export default function Home() {
                   variant="h5"
                   sx={{ fontWeight: "bold", color: "#fff", mb: 1 }}
                 >
-                  Feature 2
+                 Quiz Creation
                 </Typography>
-                <Typography variant="body1" sx={{ color: "#fff" }}>
-                  Feature 2 description
+                <Typography variant="body1" sx={{ color: "#878282" }}>
+                  Create quizzes instantly to test your knowledge. Perfect for quick reviews and self-assessments
                 </Typography>
               </CardContent>
             </Card>
@@ -203,10 +202,10 @@ export default function Home() {
                   variant="h5"
                   sx={{ fontWeight: "bold", color: "#fff", mb: 1 }}
                 >
-                  Feature 3
+                  Quick Retrieval
                 </Typography>
-                <Typography variant="body1" sx={{ color: "#fff" }}>
-                  Feature 3 description
+                <Typography variant="body1" sx={{ color: "#878282" }}>
+                  Store your flashcards securely and retrieve them in an instant, ensuring fast and efficient learning.
                 </Typography>
               </CardContent>
             </Card>
