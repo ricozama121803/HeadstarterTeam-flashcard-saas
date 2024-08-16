@@ -48,9 +48,17 @@ export default function Home() {
     <>
       <AppBar position="static" sx={{ backgroundColor: "#040f24" }}>
         <Toolbar>
-          <Typography variant="h6" style={{ flexGrow: 1 }}>
-            Flashcard SaaS
-          </Typography>
+           <Typography
+          variant="h5"
+          style={{
+            flexGrow: 1,
+            fontWeight: "bold",
+            fontSize: "2rem",
+            textShadow: "1px 1px 2px rgba(0, 0, 0, 0.2)"
+          }}
+        >
+          QuizzAI
+        </Typography>
           <SignedOut>
             <Button color="inherit" href="/sign-in" sx={{ ml: 2 }}>
               Login
