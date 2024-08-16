@@ -22,7 +22,7 @@ import {
   ButtonGroup,
 } from "@mui/material";
 import FlashcardsGrid from "../flashcard/flashcardGrid";
-import db from "/firebase";
+import { db } from "/firebase";
 import { useAuth } from "@clerk/clerk-react";
 import { useRouter } from "next/navigation";
 import MyForm from "../UI-components/type";
