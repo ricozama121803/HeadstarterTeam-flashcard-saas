@@ -1,50 +1,39 @@
-"use client";
+"use client"; // Ensure this is at the top
 
-import { use, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Container,
   TextField,
   Button,
   Typography,
   Box,
-  Grid,
-  Card,
-  CardContent,
+  CircularProgress,
+  AppBar,
+  Toolbar,
+  ButtonGroup,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogContentText,
   DialogActions,
-  CircularProgress,
-  AppBar,
-  Toolbar,
-  InputLabel,
-  ButtonGroup,
 } from "@mui/material";
+import FlashcardSets from "../UI-components/FlashcardSets";
+import FlashcardsView from "../UI-components/FlashcardsView";
 import FlashcardsGrid from "../flashcard/flashcardGrid";
-import db from "/firebase";
+import { db } from "/firebase";
 import { useAuth } from "@clerk/clerk-react";
 import { useRouter } from "next/navigation";
 import MyForm from "../UI-components/type";
-import MenuItem from "@mui/material/MenuItem";
-import FormControl from "@mui/material/FormControl";
-import Select, { SelectChangeEvent } from "@mui/material/Select";
 import Quiz from "../UI-components/Quizzes";
 import {
   collection,
   doc,
-  addDoc,
-  setDoc,
-  getDoc,
-  getDocs,
-  query,
-  orderBy,
-  serverTimestamp,
-  deleteDoc,
   writeBatch,
+  getDoc,
 } from "firebase/firestore";
+
 export default function Generate() {
-  const { getToken, isLoaded, isSignedIn, signOut, userId } = useAuth();
+  const { isLoaded, isSignedIn, signOut, userId } = useAuth();
   const [loading, setLoading] = useState(true);
   const [text, setText] = useState("");
   const [flashcards, setFlashcards] = useState([]);
@@ -53,12 +42,11 @@ export default function Generate() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [outputType, setOutputType] = useState("Flashcards");
   const [inputType, setInputType] = useState("text");
+  const [selectedSet, setSelectedSet] = useState(null);
 
   const router = useRouter();
-  const styles = {
-    card: { background: "blue", color: "white", borderRadius: 20 },
-  };
 
+  // Switch between flashcards and quizzes based on the selected output type
   useEffect(() => {
     if (outputType === "Quizzes") {
       setFlashcards([]);
@@ -66,10 +54,8 @@ export default function Generate() {
       setQuizzes([]);
     }
   }, [outputType]);
-  const handleSelectionChange = (value) => {
-    setOutputType(value);
-  };
 
+  // Handle user authentication and loading state
   useEffect(() => {
     if (!isLoaded) {
       return;
@@ -81,15 +67,16 @@ export default function Generate() {
     }
   }, [isLoaded, isSignedIn, router]);
 
-  // Sign out user when user clicks the sign-out button
+  // Handle sign-out and redirect to the home page
   const handleSignOut = async () => {
     await signOut();
     router.push("/");
   };
 
+  // Handle content generation (flashcards or quizzes)
   const handleSubmit = async () => {
     if (!text.trim()) {
-      alert("Please enter some text to generate flashcards.");
+      alert("Please enter some text to generate content.");
       return;
     }
 
@@ -100,7 +87,7 @@ export default function Generate() {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to generate flashcards");
+        throw new Error("Failed to generate content");
       }
 
       const data = await response.json();
@@ -110,76 +97,62 @@ export default function Generate() {
         setFlashcards(data);
       }
     } catch (error) {
-      alert("An error occurred while generating flashcards. Please try again.");
+      alert("An error occurred while generating content. Please try again.");
     }
   };
 
+  // Handle dialog open/close for saving content
   const handleOpenDialog = () => setDialogOpen(true);
   const handleCloseDialog = () => setDialogOpen(false);
 
+  // Save content to Firestore
   const saveContent = async () => {
     if (!setName.trim()) {
       alert("Please enter a name for your content set.");
       return;
     }
-
+  
     try {
-      const batch = writeBatch(db);
       const sanitizedSetName = setName.replace(/[^\w\s]/gi, "");
-      const userDocRef = doc(db, "users", userId);
-
-      const userDocSnap = await getDoc(userDocRef);
-
-      if (userDocSnap.exists()) {
-        const contentSets = userDocSnap.data().contentSets || [];
-
-        if (contentSets.some((set) => set.name === sanitizedSetName)) {
-          alert("A content set with the same name already exists.");
-          return;
-        } else {
-          contentSets.push({ name: sanitizedSetName });
-          batch.update(userDocRef, { contentSets });
-        }
-      } else {
-        batch.set(userDocRef, { contentSets: [{ name: sanitizedSetName }] });
-      }
-
-      // Check the type and handle accordingly
-      if (outputType === "Flashcards") {
-        const flashcardsCollectionRef = collection(
-          db,
-          `users/${userId}/flashcardSets`
+      const flashcardsCollectionRef = collection(
+        db,
+        `users/${userId}/flashcardSets`
+      );
+      const setDocRef = doc(flashcardsCollectionRef, sanitizedSetName);
+  
+      // Write the document with only the name field
+      await setDocRef.set({
+        name: sanitizedSetName,
+        createdAt: new Date(),
+      });
+  
+      const batch = writeBatch(db);
+  
+      flashcards.forEach((flashcard, index) => {
+        const docRef = doc(
+          collection(setDocRef, "flashcards"),
+          `flashcard_${index}`
         );
-        const setDocRef = doc(flashcardsCollectionRef, sanitizedSetName);
-
-        flashcards.forEach((flashcard, index) => {
-          const docRef = doc(
-            collection(setDocRef, "flashcards"),
-            `flashcard_${index}`
-          );
-
-          batch.set(docRef, flashcard);
-        });
-      } else if (outputType === "Quizzes") {
-        const quizzesCollectionRef = collection(db, `users/${userId}/quizSets`);
-        const setDocRef = doc(quizzesCollectionRef, sanitizedSetName);
-
-        quizzes.forEach((quiz, index) => {
-          const docRef = doc(collection(setDocRef, "quizzes"), `quiz_${index}`);
-
-          batch.set(docRef, quiz);
-        });
-      }
-
+        batch.set(docRef, flashcard);
+      });
+  
       await batch.commit();
       alert("Content saved successfully!");
       handleCloseDialog();
-      setSetName("");
+      setSetName(""); // Clear the input field after saving
     } catch (error) {
       alert("An error occurred while saving content. Please try again.");
+      console.error("Error saving content:", error);
     }
   };
+  
+  
+  
+  
+  
+  
 
+  // Display loading state while authenticating the user
   if (loading) {
     return (
       <Box
@@ -193,6 +166,11 @@ export default function Generate() {
     );
   }
 
+  // Handle selecting a flashcard set to view
+  const handleSelectSet = (setId) => {
+    setSelectedSet(setId);
+  };
+
   return (
     <>
       <AppBar position="static" sx={{ backgroundColor: "#040f24" }}>
@@ -205,18 +183,13 @@ export default function Generate() {
           </Button>
         </Toolbar>
       </AppBar>
-      {/* Selecting the type from the user */}
-      <div
-        style={{
-          padding: "20px",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          width: "100%",
-        }}
-      >
-        <MyForm onSelectionChange={handleSelectionChange} />
-      </div>
+
+      {!selectedSet ? (
+        <FlashcardSets userId={userId} onSelectSet={handleSelectSet} />
+      ) : (
+        <FlashcardsView userId={userId} setId={selectedSet} />
+      )}
+
       <Container>
         <Box sx={{ my: 4 }}>
           <Typography
@@ -342,12 +315,6 @@ export default function Generate() {
             </Button>
           </DialogActions>
         </Dialog>
-        <div
-          style={{
-            width: "100%",
-            height: "200px",
-          }}
-        ></div>
       </Container>
     </>
   );
