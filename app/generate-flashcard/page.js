@@ -198,7 +198,7 @@ export default function Generate() {
       <AppBar position="static" sx={{ backgroundColor: "#040f24" }}>
         <Toolbar>
           <Typography variant="h6" sx={{ flexGrow: 1 }}>
-            Flashcard SaaS
+            QuizzAI
           </Typography>
           <Button variant="contained" color="secondary" onClick={handleSignOut}>
             Sign Out
