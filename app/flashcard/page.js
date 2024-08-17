@@ -1,7 +1,9 @@
+"use client";
+import { useEffect, useState } from "react";
 import { useUser } from "@clerk/clerk-react";
 import { collection, doc, getDocs } from "firebase/firestore";
 import { db } from "/firebase";
-import { useEffect, useState } from "react";
+
 import {
   Container,
   Grid,
