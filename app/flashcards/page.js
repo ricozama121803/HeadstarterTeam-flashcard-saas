@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useUser } from "@clerk/clerk-react";
 import { useRouter } from "next/navigation";
 import { collection, doc, getDoc, setDoc } from "firebase/firestore";
-import db from "/firebase";
+import { db } from "/firebase";
 import {
   Container,
   Grid,
@@ -11,7 +11,6 @@ import {
   CardContent,
   Typography,
 } from "@mui/material";
-import { useUser } from "@clerk/clerk-react";
 
 export default function Flashcard() {
   const { isLoaded, isSignedIn, user } = useUser();

@@ -22,7 +22,7 @@ import {
 } from "@mui/icons-material";
 import Image from "next/image";
 import WaitlistForm from "./UI-components/waitlist";
-import Quiz from "./UI-components/Quizzes";
+
 export default function Home() {
   const router = useRouter();
 
