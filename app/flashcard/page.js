@@ -1,3 +1,5 @@
+"use client"; // Add this line to mark the component as a Client Component
+
 import { useEffect, useState } from "react";
 import { useUser } from "@clerk/clerk-react";
 import { useRouter } from "next/navigation";
