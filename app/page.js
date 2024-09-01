@@ -1,4 +1,5 @@
 "use client";
+import { useEffect } from "react";
 import {
   AppBar,
   Toolbar,
@@ -10,7 +11,7 @@ import {
   Card,
   CardContent,
 } from "@mui/material";
-import { SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
+import { SignedIn, SignedOut, UserButton, useAuth } from "@clerk/nextjs";
 import getStripe from "../utils/get-stripe";
 import { useRouter } from "next/navigation";
 import {
@@ -20,8 +21,17 @@ import {
 } from "@mui/icons-material";
 import WaitlistForm from "./UI-components/waitlist";
 import Quiz from "./UI-components/Quizzes";
+
 export default function Home() {
   const router = useRouter();
+  const { isSignedIn } = useAuth(); // Access the user's sign-in status
+
+  // Redirect to /generate-flashcard if the user is signed in
+  useEffect(() => {
+    if (isSignedIn) {
+      router.push("/generate-flashcard");
+    }
+  }, [isSignedIn, router]);
 
   const handleSubmit = async (amount) => {
     const checkoutSession = await fetch("/api/checkout_sessions", {
@@ -48,17 +58,17 @@ export default function Home() {
     <>
       <AppBar position="static" sx={{ backgroundColor: "#040f24" }}>
         <Toolbar>
-           <Typography
-          variant="h5"
-          style={{
-            flexGrow: 1,
-            fontWeight: "bold",
-            fontSize: "2rem",
-            textShadow: "1px 1px 2px rgba(0, 0, 0, 0.2)"
-          }}
-        >
-          QuizzAI
-        </Typography>
+          <Typography
+            variant="h5"
+            style={{
+              flexGrow: 1,
+              fontWeight: "bold",
+              fontSize: "2rem",
+              textShadow: "1px 1px 2px rgba(0, 0, 0, 0.2)",
+            }}
+          >
+            QuizzAI
+          </Typography>
           <SignedOut>
             <Button color="inherit" href="/sign-in" sx={{ ml: 2 }}>
               Login
@@ -179,10 +189,10 @@ export default function Home() {
                   variant="h5"
                   sx={{ fontWeight: "bold", color: "#fff", mb: 1 }}
                 >
-                 Quiz Creation
+                  Quiz Creation
                 </Typography>
                 <Typography variant="body1" sx={{ color: "#878282" }}>
-                  Create quizzes instantly to test your knowledge. Perfect for quick reviews and self-assessments
+                  Create quizzes instantly to test your knowledge. Perfect for quick reviews and self-assessments.
                 </Typography>
               </CardContent>
             </Card>
@@ -376,6 +386,7 @@ export default function Home() {
           </Grid>
         </Grid>
       </Box>
+
       {/* Call to Action Section */}
       <Box sx={{ py: 8, px: 10, textAlign: "center", color: "#fff" }}>
         <Typography
@@ -412,11 +423,18 @@ export default function Home() {
               backgroundColor: "#388e3c",
             },
           }}
-          onClick={() => router.push("/generate-flashcard")}
+          onClick={() => {
+            if (isSignedIn) {
+              router.push("/generate-flashcard"); // Redirect to generate flashcard page if signed in
+            } else {
+              router.push("/sign-up"); // Redirect to signup page if not signed in
+            }
+          }}
         >
           Get Started
         </Button>
       </Box>
+
       {/* Footer Section */}
       <Box
         sx={{

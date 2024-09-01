@@ -1,7 +1,10 @@
 "use client"; // Ensure this is at the top
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import {
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
   Container,
   TextField,
   Button,
@@ -16,21 +19,115 @@ import {
   DialogContent,
   DialogContentText,
   DialogActions,
+  Chip,
+  IconButton,
 } from "@mui/material";
-import FlashcardSets from "../UI-components/FlashcardSets";
 import FlashcardsView from "../UI-components/FlashcardsView";
 import FlashcardsGrid from "../flashcard/flashcardGrid";
 import { db } from "/firebase";
 import { useAuth } from "@clerk/clerk-react";
-import { useRouter } from "next/navigation";
-import MyForm from "../UI-components/type";
 import Quiz from "../UI-components/Quizzes";
 import {
   collection,
   doc,
   writeBatch,
+  setDoc,
+  getDocs,
   getDoc,
+  deleteDoc,
 } from "firebase/firestore";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import DeleteIcon from "@mui/icons-material/Delete";
+import { useRouter } from "next/navigation";
+
+function FlashcardSets({ userId, onSelectSet, onDeleteSet }) {
+  const [flashcardSets, setFlashcardSets] = useState([]);
+
+  useEffect(() => {
+    const fetchSets = async () => {
+      // Fetch flashcard sets
+      const flashcardSetsRef = collection(db, `users/${userId}/flashcardSets`);
+      const flashcardSnapshot = await getDocs(flashcardSetsRef);
+      const flashcardSets = flashcardSnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+
+      // Fetch quiz sets
+      const quizSetsRef = collection(db, `users/${userId}/quizSets`);
+      const quizSnapshot = await getDocs(quizSetsRef);
+      const quizSets = quizSnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+
+      // Combine both sets and update state
+      setFlashcardSets([...flashcardSets, ...quizSets]);
+    };
+
+    fetchSets();
+  }, [userId]);
+
+  const handleDeleteSet = async (setId, isQuiz) => {
+    const collectionName = isQuiz ? "quizSets" : "flashcardSets";
+    if (window.confirm("Are you sure you want to delete this set?")) {
+      try {
+        await deleteDoc(doc(db, `users/${userId}/${collectionName}/${setId}`));
+        setFlashcardSets((prevSets) => prevSets.filter((set) => set.id !== setId));
+        onDeleteSet(setId); // Update the selected set if it's the one being deleted
+      } catch (error) {
+        console.error("Error deleting set:", error);
+        alert("An error occurred while deleting the set. Please try again.");
+      }
+    }
+  };
+
+  return (
+    <Accordion sx={{ backgroundColor: "transparent", color: "white", boxShadow: "none" }}>
+      <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ color: "white" }} />}>
+        <Typography>Saved Sets</Typography>
+      </AccordionSummary>
+      <AccordionDetails>
+        {flashcardSets.length > 0 ? (
+          flashcardSets.map((set) => (
+            <Box
+              key={set.id}
+              mb={2}
+              display="flex"
+              justifyContent="space-between"
+              alignItems="center"
+            >
+              <Typography
+                variant="h6"
+                sx={{ cursor: "pointer" }}
+                onClick={() => onSelectSet(set)} // Pass the entire set object
+              >
+                {set.name}
+              </Typography>
+              <Box display="flex" alignItems="center">
+                <Chip
+                  label={set.isQuiz ? "Quiz" : "Flashcards"}
+                  color={set.isQuiz ? "primary" : "secondary"}
+                  size="small"
+                  sx={{ mr: 2 }}
+                />
+                <IconButton
+                  color="error"
+                  onClick={() => handleDeleteSet(set.id, set.isQuiz)}
+                  size="small"
+                >
+                  <DeleteIcon />
+                </IconButton>
+              </Box>
+            </Box>
+          ))
+        ) : (
+          <Typography>No saved sets available.</Typography>
+        )}
+      </AccordionDetails>
+    </Accordion>
+  );
+}
 
 export default function Generate() {
   const { isLoaded, isSignedIn, signOut, userId } = useAuth();
@@ -43,8 +140,12 @@ export default function Generate() {
   const [outputType, setOutputType] = useState("Flashcards");
   const [inputType, setInputType] = useState("text");
   const [selectedSet, setSelectedSet] = useState(null);
-
+  const [isGenerating, setIsGenerating] = useState(false); // Loading state for generation
+  const [currentQuestion, setCurrentQuestion] = useState(0);
+  const [selectedOption, setSelectedOption] = useState("");
+  const [score, setScore] = useState(0);
   const router = useRouter();
+  const setRef = useRef(null); // Ref for scrolling
 
   // Switch between flashcards and quizzes based on the selected output type
   useEffect(() => {
@@ -80,10 +181,17 @@ export default function Generate() {
       return;
     }
 
+    // Clear previous set when generating new content
+    setSelectedSet(null);
+    setIsGenerating(true); // Set loading state
+
     try {
       const response = await fetch("/api/generate", {
         method: "POST",
         body: JSON.stringify({ text, outputType, inputType }),
+        headers: {
+          "Content-Type": "application/json",
+        },
       });
 
       if (!response.ok) {
@@ -98,6 +206,8 @@ export default function Generate() {
       }
     } catch (error) {
       alert("An error occurred while generating content. Please try again.");
+    } finally {
+      setIsGenerating(false); // Reset loading state
     }
   };
 
@@ -111,31 +221,28 @@ export default function Generate() {
       alert("Please enter a name for your content set.");
       return;
     }
-  
+
     try {
       const sanitizedSetName = setName.replace(/[^\w\s]/gi, "");
-      const flashcardsCollectionRef = collection(
-        db,
-        `users/${userId}/flashcardSets`
-      );
-      const setDocRef = doc(flashcardsCollectionRef, sanitizedSetName);
-  
-      // Write the document with only the name field
-      await setDocRef.set({
+      const collectionName = outputType === "Quizzes" ? "quizSets" : "flashcardSets";
+      const setsCollectionRef = collection(db, `users/${userId}/${collectionName}`);
+      const setDocRef = doc(setsCollectionRef, sanitizedSetName);
+
+      // Write the document with only the name field using `setDoc`
+      await setDoc(setDocRef, {
         name: sanitizedSetName,
         createdAt: new Date(),
+        isQuiz: outputType === "Quizzes", // Store whether the set is a quiz
       });
-  
+
       const batch = writeBatch(db);
-  
-      flashcards.forEach((flashcard, index) => {
-        const docRef = doc(
-          collection(setDocRef, "flashcards"),
-          `flashcard_${index}`
-        );
-        batch.set(docRef, flashcard);
+      const items = outputType === "Quizzes" ? quizzes : flashcards;
+
+      items.forEach((item, index) => {
+        const docRef = doc(collection(setDocRef, outputType.toLowerCase()), `${outputType.toLowerCase()}_${index}`);
+        batch.set(docRef, item);
       });
-  
+
       await batch.commit();
       alert("Content saved successfully!");
       handleCloseDialog();
@@ -145,12 +252,56 @@ export default function Generate() {
       console.error("Error saving content:", error);
     }
   };
-  
-  
-  
-  
-  
-  
+
+  // Handle selecting a flashcard set or quiz set to view and scroll to it
+  const handleSelectSet = async (set) => {
+    setFlashcards([]);
+    setQuizzes([]);
+    setSelectedSet(set);
+
+    const collectionName = set.isQuiz ? "quizSets" : "flashcardSets";
+    if (set.isQuiz) {
+      try {
+        const quizDoc = await getDoc(doc(db, `users/${userId}/${collectionName}/${set.id}`));
+        if (quizDoc.exists()) {
+          const quizData = quizDoc.data();
+          setQuizzes(quizData.questions || []);
+          setCurrentQuestion(0); // Reset to the first question
+          setSelectedOption(""); // Clear any selected option
+          setScore(0); // Reset the score
+        } else {
+          setQuizzes([]);
+        }
+      } catch (error) {
+        console.error("Error loading quiz questions:", error);
+        setQuizzes([]);
+      }
+    } else {
+      // Fetch flashcards similarly if it's not a quiz
+    }
+
+    setTimeout(() => {
+      if (setRef.current) {
+        setRef.current.scrollIntoView({ behavior: "smooth" });
+      }
+    }, 100);
+  };
+
+  // Handle set deletion update
+  const handleDeleteSet = (setId, isQuiz) => {
+    if (selectedSet && selectedSet.id === setId) {
+      setSelectedSet(null);
+    }
+  };
+
+  const handleRestartQuiz = () => {
+    // Reset quiz state here
+    setCurrentQuestion(0);
+    setSelectedOption("");
+    setScore(0);
+    setQuizzes([]); // Clear the quiz questions
+    setSelectedSet(null); // Assuming you need to clear selected set
+  };
 
   // Display loading state while authenticating the user
   if (loading) {
@@ -166,11 +317,6 @@ export default function Generate() {
     );
   }
 
-  // Handle selecting a flashcard set to view
-  const handleSelectSet = (setId) => {
-    setSelectedSet(setId);
-  };
-
   return (
     <>
       <AppBar position="static" sx={{ backgroundColor: "#040f24" }}>
@@ -178,18 +324,14 @@ export default function Generate() {
           <Typography variant="h6" sx={{ flexGrow: 1 }}>
             Flashcard SaaS
           </Typography>
-          <Button variant="contained" color="secondary" onClick={handleSignOut}>
+          <FlashcardSets userId={userId} onSelectSet={handleSelectSet} onDeleteSet={handleDeleteSet} />
+          <Button variant="contained" color="secondary" onClick={handleSignOut} sx={{ ml: 2 }}>
             Sign Out
           </Button>
         </Toolbar>
       </AppBar>
 
-      {!selectedSet ? (
-        <FlashcardSets userId={userId} onSelectSet={handleSelectSet} />
-      ) : (
-        <FlashcardsView userId={userId} setId={selectedSet} />
-      )}
-
+      {/* Main Container */}
       <Container>
         <Box sx={{ my: 4 }}>
           <Typography
@@ -234,20 +376,32 @@ export default function Generate() {
             <Button
               variant={inputType === "text" ? "contained" : "outlined"}
               color="secondary"
-              onClick={() => {
-                setInputType("text");
-              }}
+              onClick={() => setInputType("text")}
             >
               Text
             </Button>
             <Button
               variant={inputType === "youtube" ? "contained" : "outlined"}
               color="secondary"
-              onClick={() => {
-                setInputType("youtube");
-              }}
+              onClick={() => setInputType("youtube")}
             >
               Link
+            </Button>
+          </ButtonGroup>
+          <ButtonGroup fullWidth sx={{ py: 2, fontSize: "1rem" }}>
+            <Button
+              variant={outputType === "Flashcards" ? "contained" : "outlined"}
+              color="primary"
+              onClick={() => setOutputType("Flashcards")}
+            >
+              Flashcards
+            </Button>
+            <Button
+              variant={outputType === "Quizzes" ? "contained" : "outlined"}
+              color="primary"
+              onClick={() => setOutputType("Quizzes")}
+            >
+              Quizzes
             </Button>
           </ButtonGroup>
           <Button
@@ -257,29 +411,86 @@ export default function Generate() {
             fullWidth
             sx={{ py: 2, fontSize: "1rem" }}
           >
-            Generate {outputType}
+            {isGenerating ? (
+              <CircularProgress size={24} thickness={4} sx={{ color: "white" }} />
+            ) : (
+              `Generate ${outputType}`
+            )}
           </Button>
         </Box>
-        {quizzes.length > 0 && outputType === "Quizzes" ? (
-          <Quiz questions={quizzes} />
-        ) : (
-          flashcards.length > 0 && (
-            <Box sx={{ mt: 4 }}>
-              <Typography
-                variant="h5"
-                component="h2"
-                gutterBottom
-                sx={{ textAlign: "center", fontWeight: "bold" }}
-              >
-                Generated Flashcards
-              </Typography>
-              <FlashcardsGrid flashcards={flashcards} />
-            </Box>
-          )
+
+        {/* Display Generated Quizzes or Flashcards */}
+        {(quizzes.length > 0 || flashcards.length > 0) && (
+          <>
+            {quizzes.length > 0 && outputType === "Quizzes" && (
+              <Box sx={{ mt: 4 }}>
+                <Typography
+                  variant="h5"
+                  component="h2"
+                  gutterBottom
+                  sx={{ textAlign: "center", fontWeight: "bold" }}
+                >
+                  Generated Quizzes
+                </Typography>
+                <Quiz
+                  questions={quizzes}
+                  currentQuestion={currentQuestion}
+                  selectedOption={selectedOption}
+                  score={score}
+                  setCurrentQuestion={setCurrentQuestion}
+                  setSelectedOption={setSelectedOption}
+                  setScore={setScore}
+                />
+              </Box>
+            )}
+
+            {flashcards.length > 0 && outputType === "Flashcards" && (
+              <Box sx={{ mt: 8, mb: 4 }}>
+                <Typography
+                  variant="h5"
+                  component="h2"
+                  gutterBottom
+                  sx={{ textAlign: "center", fontWeight: "bold" }}
+                >
+                  Generated Flashcards
+                </Typography>
+                <FlashcardsGrid flashcards={flashcards} />
+              </Box>
+            )}
+          </>
         )}
 
+        {/* Display Selected Flashcard or Quiz Set */}
+        {selectedSet && (
+          <>
+            <Typography
+              variant="h5"
+              component="h2"
+              gutterBottom
+              sx={{ textAlign: "center", fontWeight: "bold", mt: 4 }}
+              ref={setRef}
+            >
+              {selectedSet.name}
+            </Typography>
+            {selectedSet.isQuiz ? (
+              <Quiz
+                questions={quizzes}
+                currentQuestion={currentQuestion}
+                selectedOption={selectedOption}
+                score={score}
+                setCurrentQuestion={setCurrentQuestion}
+                setSelectedOption={setSelectedOption}
+                setScore={setScore}
+              />
+            ) : (
+              <FlashcardsView userId={userId} setId={selectedSet.id} />
+            )}
+          </>
+        )}
+
+        {/* Save Button and Dialog */}
         {(quizzes.length > 0 || flashcards.length > 0) && (
-          <Box sx={{ mt: 4, display: "flex", justifyContent: "center" }}>
+          <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
             <Button
               variant="contained"
               color="primary"
