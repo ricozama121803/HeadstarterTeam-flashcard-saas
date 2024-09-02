@@ -115,7 +115,7 @@ export async function POST(req) {
 
   try {
     const completion = await openai.chat.completions.create({
-      model: "gpt-4",  // Ensure the model name is correct
+      model: "gpt-3.5-turbo",  // Ensure the model name is correct
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: formattedInput },
