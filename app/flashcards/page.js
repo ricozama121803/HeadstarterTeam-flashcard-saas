@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useUser } from "@clerk/clerk-react";
 import { useRouter } from "next/navigation";
 import { collection, doc, getDocs } from "firebase/firestore";
-import { db } from "/firebase"; // Adjust based on your actual export
+import db from "/firebase";
 import {
   Container,
   Grid,
