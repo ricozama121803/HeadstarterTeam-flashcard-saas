@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import OpenAI from "openai";
 import { YoutubeTranscript } from "youtube-transcript";
 
+// Prompts for generating flashcards and quizzes
 const flashcardsPrompt = `
 You are a flashcard creator. Take the following text and generate exactly 10 flashcards. Each flashcard should have a front and back, both being a single sentence.
 
@@ -74,24 +75,43 @@ const inputContext = {
 // Formats input based on inputType
 async function formatInput(input, inputType) {
   if (inputType === "youtube") {
-    const transcriptList = await YoutubeTranscript.fetchTranscript(input);
-    const transcript = transcriptList
-      .map((transcript) => transcript.text)
-      .join(" ");
-    return transcript;
+    try {
+      const transcriptList = await YoutubeTranscript.fetchTranscript(input);
+      const transcript = transcriptList
+        .map((transcript) => transcript.text)
+        .join(" ");
+      return transcript;
+    } catch (error) {
+      console.error("Error fetching YouTube transcript:", error);
+      throw new Error("Failed to fetch YouTube transcript.");
+    }
   }
   return input;
 }
 
 export async function POST(req) {
+  // Check if the API key is set
+  if (!process.env.NEXT_PUBLIC_OPENAI_API_KEY) {
+    return NextResponse.json(
+      { error: "OpenAI API key is not set." },
+      { status: 500 }
+    );
+  }
+
   const openai = new OpenAI({
     apiKey: process.env.NEXT_PUBLIC_OPENAI_API_KEY,
   });
 
   const { text, outputType, inputType } = await req.json();
 
+  // Format the input text based on its type
   const formattedInput = await formatInput(text, inputType);
-  const systemPrompt = outputContext[outputType] + inputContext[inputType];
+
+  // Construct the prompt for the OpenAI model
+  const systemPrompt = `
+    ${outputContext[outputType]}
+    ${inputContext[inputType]}
+  `;
 
   try {
     const completion = await openai.chat.completions.create({
@@ -122,6 +142,7 @@ export async function POST(req) {
       );
     }
 
+    // Return the generated content based on output type
     if (outputType === "Quizzes") {
       return NextResponse.json(parsedContent.quizzes);
     } else {
