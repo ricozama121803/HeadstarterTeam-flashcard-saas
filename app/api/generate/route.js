@@ -98,14 +98,6 @@ export async function POST(req) {
     );
   }
 
-  // Start processing the request in the background
-  processRequestInBackground(req);
-
-  // Return immediately to avoid timeout issues
-  return NextResponse.json({ status: "Processing started" });
-}
-
-async function processRequestInBackground(req) {
   const openai = new OpenAI({
     apiKey: process.env.NEXT_PUBLIC_OPENAI_API_KEY,
   });
@@ -141,19 +133,23 @@ async function processRequestInBackground(req) {
       parsedContent = JSON.parse(content);
     } catch (jsonError) {
       console.error("Failed to parse JSON:", jsonError);
-      console.error("Raw content received:", content);
-      return;
+      return NextResponse.json(
+        { error: "Invalid response from OpenAI: " + content },
+        { status: 400 }
+      );
     }
 
-    // Save or process the generated content based on output type
+    // Return the generated content based on output type
     if (outputType === "Quizzes") {
-      // Handle the quizzes here (e.g., save to a database)
-      console.log(parsedContent.quizzes);
+      return NextResponse.json(parsedContent.quizzes);
     } else {
-      // Handle the flashcards here (e.g., save to a database)
-      console.log(parsedContent.flashcards);
+      return NextResponse.json(parsedContent.flashcards);
     }
   } catch (error) {
-    console.error("Error processing the request:", error);
+    console.error("Error generating content:", error);
+    return NextResponse.json(
+      { error: "Failed to generate or save content." },
+      { status: 500 }
+    );
   }
 }
