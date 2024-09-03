@@ -110,20 +110,20 @@ async function processRequestInBackground(req) {
     apiKey: process.env.NEXT_PUBLIC_OPENAI_API_KEY,
   });
 
-  const { text, outputType, inputType } = await req.json();
-
-  // Format the input text based on its type
-  const formattedInput = await formatInput(text, inputType);
-
-  // Construct the prompt for the OpenAI model
-  const systemPrompt = `
-    ${outputContext[outputType]}
-    ${inputContext[inputType]}
-  `;
-
   try {
+    const { text, outputType, inputType } = await req.json();
+
+    // Format the input text based on its type
+    const formattedInput = await formatInput(text, inputType);
+
+    // Construct the prompt for the OpenAI model
+    const systemPrompt = `
+      ${outputContext[outputType]}
+      ${inputContext[inputType]}
+    `;
+
     const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",  // Ensure the model name is correct
+      model: "gpt-3.5-turbo",  // Ensure the model name is correct
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: formattedInput },
@@ -142,12 +142,7 @@ async function processRequestInBackground(req) {
     } catch (jsonError) {
       console.error("Failed to parse JSON:", jsonError);
       console.error("Raw content received:", content);
-
-      // Handle non-JSON response gracefully
-      return NextResponse.json(
-        { error: "Invalid response from OpenAI: " + content },
-        { status: 400 }
-      );
+      return;
     }
 
     // Save or process the generated content based on output type
@@ -159,6 +154,6 @@ async function processRequestInBackground(req) {
       console.log(parsedContent.flashcards);
     }
   } catch (error) {
-    console.error("Error generating content:", error);
+    console.error("Error processing the request:", error);
   }
 }
