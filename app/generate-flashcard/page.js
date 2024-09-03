@@ -214,7 +214,6 @@ export default function Generate() {
       setIsGenerating(false); // Reset loading state
     }
   };
-  
 
   // Handle dialog open/close for saving content
   const handleOpenDialog = () => setDialogOpen(true);
@@ -263,14 +262,18 @@ export default function Generate() {
     setFlashcards([]);
     setQuizzes([]);
     setSelectedSet(set);
-
+  
     const collectionName = set.isQuiz ? "quizSets" : "flashcardSets";
     if (set.isQuiz) {
       try {
         const quizDoc = await getDoc(doc(db, `users/${userId}/${collectionName}/${set.id}`));
         if (quizDoc.exists()) {
-          const quizData = quizDoc.data();
-          setQuizzes(quizData.questions || []);
+          const quizQuestionsRef = collection(db, `users/${userId}/${collectionName}/${set.id}/quizzes`);
+          const quizQuestionsSnapshot = await getDocs(quizQuestionsRef);
+
+          const quizQuestions = quizQuestionsSnapshot.docs.map(doc => doc.data());
+
+          setQuizzes(quizQuestions);
           setCurrentQuestion(0); // Reset to the first question
           setSelectedOption(""); // Clear any selected option
           setScore(0); // Reset the score
@@ -284,7 +287,7 @@ export default function Generate() {
     } else {
       // Fetch flashcards similarly if it's not a quiz
     }
-
+  
     setTimeout(() => {
       if (setRef.current) {
         setRef.current.scrollIntoView({ behavior: "smooth" });
@@ -300,12 +303,13 @@ export default function Generate() {
   };
 
   const handleRestartQuiz = () => {
-    // Reset quiz state here
     setCurrentQuestion(0);
     setSelectedOption("");
     setScore(0);
-    setQuizzes([]); // Clear the quiz questions
-    setSelectedSet(null); // Assuming you need to clear selected set
+    // Reload the selected quiz to reset the state and start over
+    if (selectedSet) {
+      handleSelectSet(selectedSet);
+    }
   };
 
   // Display loading state while authenticating the user
@@ -445,6 +449,7 @@ export default function Generate() {
                   setCurrentQuestion={setCurrentQuestion}
                   setSelectedOption={setSelectedOption}
                   setScore={setScore}
+                  onRestart={handleRestartQuiz} // Pass the restart handler to the Quiz component
                 />
               </Box>
             )}
@@ -486,6 +491,7 @@ export default function Generate() {
                 setCurrentQuestion={setCurrentQuestion}
                 setSelectedOption={setSelectedOption}
                 setScore={setScore}
+                onRestart={handleRestartQuiz} // Pass the restart handler to the Quiz component
               />
             ) : (
               <FlashcardsView userId={userId} setId={selectedSet.id} />
