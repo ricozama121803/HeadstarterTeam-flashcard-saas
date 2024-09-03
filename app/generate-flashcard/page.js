@@ -180,11 +180,12 @@ export default function Generate() {
       alert("Please enter some text to generate content.");
       return;
     }
-
+  
     // Clear previous set when generating new content
     setSelectedSet(null);
     setIsGenerating(true); // Set loading state
-
+    console.log("Generating..."); // Add this to confirm the function is called
+  
     try {
       const response = await fetch("/api/generate", {
         method: "POST",
@@ -193,23 +194,27 @@ export default function Generate() {
           "Content-Type": "application/json",
         },
       });
-
+  
       if (!response.ok) {
         throw new Error("Failed to generate content");
       }
-
+  
       const data = await response.json();
+      console.log("Data received:", data); // Log the data received
+  
       if (outputType === "Quizzes") {
         setQuizzes(data);
       } else {
         setFlashcards(data);
       }
     } catch (error) {
+      console.error("Error generating content:", error); // Log errors for debugging
       alert("An error occurred while generating content. Please try again.");
     } finally {
       setIsGenerating(false); // Reset loading state
     }
   };
+  
 
   // Handle dialog open/close for saving content
   const handleOpenDialog = () => setDialogOpen(true);
