@@ -123,7 +123,7 @@ async function processRequestInBackground(req) {
 
   try {
     const completion = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",  // Ensure the model name is correct
+      model: "gpt-4o-mini",  // Ensure the model name is correct
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: formattedInput },
