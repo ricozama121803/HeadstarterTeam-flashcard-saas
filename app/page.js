@@ -446,7 +446,7 @@ export default function Home() {
         }}
       >
         <Typography variant="body3">
-          © 2024 Flashcard AI. All rights reserved.
+          © 2024 QuizzAI - flashcard Saas. All rights reserved.
         </Typography>
       </Box>
     </>

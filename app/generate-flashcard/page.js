@@ -99,7 +99,7 @@ function FlashcardSets({ userId, onSelectSet, onDeleteSet }) {
             >
               <Typography
                 variant="h6"
-                sx={{ cursor: "pointer" }}
+                sx={{ cursor: "pointer", mr: 2 }} // Adds space to the right of the set name
                 onClick={() => onSelectSet(set)} // Pass the entire set object
               >
                 {set.name}
@@ -180,12 +180,12 @@ export default function Generate() {
       alert("Please enter some text to generate content.");
       return;
     }
-  
+
     // Clear previous set when generating new content
     setSelectedSet(null);
     setIsGenerating(true); // Set loading state
     console.log("Generating..."); // Add this to confirm the function is called
-  
+
     try {
       const response = await fetch("/api/generate", {
         method: "POST",
@@ -194,14 +194,14 @@ export default function Generate() {
           "Content-Type": "application/json",
         },
       });
-  
+
       if (!response.ok) {
         throw new Error("Failed to generate content");
       }
-  
+
       const data = await response.json();
       console.log("Data received:", data); // Log the data received
-  
+
       if (outputType === "Quizzes") {
         setQuizzes(data);
       } else {
@@ -262,7 +262,7 @@ export default function Generate() {
     setFlashcards([]);
     setQuizzes([]);
     setSelectedSet(set);
-  
+
     const collectionName = set.isQuiz ? "quizSets" : "flashcardSets";
     if (set.isQuiz) {
       try {
@@ -287,7 +287,7 @@ export default function Generate() {
     } else {
       // Fetch flashcards similarly if it's not a quiz
     }
-  
+
     setTimeout(() => {
       if (setRef.current) {
         setRef.current.scrollIntoView({ behavior: "smooth" });
@@ -328,10 +328,10 @@ export default function Generate() {
 
   return (
     <>
-      <AppBar position="static" sx={{ backgroundColor: "#040f24" }}>
+      <AppBar position="sticky" sx={{ backgroundColor: "#040f24" }}>
         <Toolbar>
           <Typography variant="h6" sx={{ flexGrow: 1 }}>
-            Flashcard SaaS
+            QuizzAI
           </Typography>
           <FlashcardSets userId={userId} onSelectSet={handleSelectSet} onDeleteSet={handleDeleteSet} />
           <Button variant="contained" color="secondary" onClick={handleSignOut} sx={{ ml: 2 }}>
